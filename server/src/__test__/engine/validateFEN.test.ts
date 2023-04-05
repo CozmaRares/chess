@@ -3,206 +3,186 @@ import { DEFAULT_POSITION, validateFEN } from "../../chess/engine";
 
 describe("valid FEN strings", () => {
   test("starting position", () => {
-    expect(validateFEN(DEFAULT_POSITION)).toEqual({ ok: true });
+    expect(validateFEN(DEFAULT_POSITION)).toBe(undefined);
   });
 
   test("random position 1", () => {
     expect(
       validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 19")
-    ).toEqual({ ok: true });
+    ).toBe(undefined);
   });
 
   test("random position 2", () => {
-    expect(validateFEN("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 b - - 3 43")).toEqual(
-      { ok: true }
+    expect(validateFEN("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 b - - 3 43")).toBe(
+      undefined
     );
   });
 
   test("random position 3", () => {
-    expect(validateFEN("8/8/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")).toEqual({
-      ok: true
-    });
+    expect(validateFEN("8/8/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")).toBe(undefined);
   });
 });
 
 describe("invalid FEN strings", () => {
   test("string doesn't contain 6 fields", () => {
-    expect(validateFEN("8/8/2k2Q2/8/5P2/8/1p6/6K1 b - 1 48")).toEqual({
-      ok: false,
-      error: "Invalid FEN: string must contain 6 space delimited fields"
-    });
+    expect(() =>
+      validateFEN("8/8/2k2Q2/8/5P2/8/1p6/6K1 b - 1 48")
+    ).toThrowError(
+      /^Invalid FEN - string must contain 6 space delimited fields$/
+    );
   });
 
   describe("invalid board position", () => {
     test("doesn't contain 8 fields/rows", () => {
-      expect(validateFEN("8/8/2k2Q2/8/5P2/8/1p6 b - - 1 48")).toEqual({
-        ok: false,
-        error:
-          "Invalid FEN: board position must contain 8 rows delimited by '/'"
-      });
+      expect(() =>
+        validateFEN("8/8/2k2Q2/8/5P2/8/1p6 b - - 1 48")
+      ).toThrowError(
+        /^Invalid FEN - board position must contain 8 rows delimited by '\/'$/
+      );
     });
 
     test("missing white king", () => {
-      expect(validateFEN("8/8/2k2Q2/8/5P2/8/1p6/8 b - - 1 48")).toEqual({
-        ok: false,
-        error: "Invalid FEN: board position is missing white king"
-      });
+      expect(() =>
+        validateFEN("8/8/2k2Q2/8/5P2/8/1p6/8 b - - 1 48")
+      ).toThrowError(/^Invalid FEN - board position is missing white king$/);
     });
 
     test("missing black king", () => {
-      expect(validateFEN("8/8/2K2Q2/8/5P2/8/1p6/8 b - - 1 48")).toEqual({
-        ok: false,
-        error: "Invalid FEN: board position is missing black king"
-      });
+      expect(() =>
+        validateFEN("8/8/2K2Q2/8/5P2/8/1p6/8 b - - 1 48")
+      ).toThrowError(/^Invalid FEN - board position is missing black king$/);
     });
 
     test("too many white kings", () => {
-      expect(validateFEN("8/7K/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")).toEqual({
-        ok: false,
-        error: "Invalid FEN: board position contains too many white kings"
-      });
+      expect(() =>
+        validateFEN("8/7K/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")
+      ).toThrowError(
+        /^Invalid FEN - board position contains too many white kings$/
+      );
     });
 
     test("too many black kings", () => {
-      expect(validateFEN("8/7k/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")).toEqual({
-        ok: false,
-        error: "Invalid FEN: board position contains too many black kings"
-      });
+      expect(() =>
+        validateFEN("8/7k/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")
+      ).toThrowError(
+        /^Invalid FEN - board position contains too many black kings$/
+      );
     });
 
     test("consecutive digits", () => {
-      expect(validateFEN("8/62/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")).toEqual({
-        ok: false,
-        error: "Invalid FEN: board position contains consecutive digits"
-      });
+      expect(() =>
+        validateFEN("8/62/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48")
+      ).toThrowError(
+        /^Invalid FEN - board position contains consecutive digits$/
+      );
     });
 
     test("invalid piece", () => {
-      expect(
+      expect(() =>
         validateFEN("1k6/1Gp5/p7/5B1p/PP6/6K1/4p2r/4R3 b - - 3 43")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: board position contains an invalid piece symbol: G"
-      });
+      ).toThrowError(
+        /^Invalid FEN - board position contains an invalid piece symbol: G$/
+      );
     });
 
     test("too many squares on row", () => {
-      expect(
+      expect(() =>
         validateFEN("1k6/1pp5/1p7/5B1p/PP6/6K1/4p2r/4R3 b - - 3 43")
-      ).toEqual({
-        ok: false,
-        error:
-          "Invalid FEN: board position contains a row that does not have 8 squares"
-      });
+      ).toThrowError(
+        /^Invalid FEN - board position contains a row that does not have 8 squares$/
+      );
     });
   });
 
   describe("invalid turn", () => {
     test("capital W", () => {
-      expect(
+      expect(() =>
         validateFEN("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 W - - 3 43")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: invalid side to move"
-      });
+      ).toThrowError(/^Invalid FEN - invalid side to move$/);
     });
 
     test("capital B", () => {
-      expect(
+      expect(() =>
         validateFEN("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 B - - 3 43")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: invalid side to move"
-      });
+      ).toThrowError(/^Invalid FEN - invalid side to move$/);
     });
 
     test("invalid letter", () => {
-      expect(
+      expect(() =>
         validateFEN("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 c - - 3 43")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: invalid side to move"
-      });
+      ).toThrowError(/^Invalid FEN - invalid side to move$/);
     });
   });
 
   describe("invalid castling rights", () => {
     test("invalid characters", () => {
-      expect(
+      expect(() =>
         validateFEN("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 b abc - 3 43")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: string contains invalid castling rights"
-      });
+      ).toThrowError(/^Invalid FEN - string contains invalid castling rights$/);
     });
   });
 
   describe("invalid en-passant", () => {
     test("random position 1", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - e1 0 19")
-      ).toEqual({ ok: false, error: "Invalid FEN: invalid en-passant square" });
+      ).toThrowError(/^Invalid FEN - invalid en-passant square$/);
     });
 
     test("random position 1", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 w - e3 0 19")
-      ).toEqual({ ok: false, error: "Invalid FEN: invalid en-passant square" });
+      ).toThrowError(/^Invalid FEN - invalid en-passant square$/);
     });
 
     test("random position 1", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - e6 0 19")
-      ).toEqual({ ok: false, error: "Invalid FEN: invalid en-passant square" });
+      ).toThrowError(/^Invalid FEN - invalid en-passant square$/);
     });
   });
 
   describe("invalid half moves", () => {
     test("negative number", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - -2 19")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: move number must be a non-negative integer"
-      });
+      ).toThrowError(
+        /^Invalid FEN - move number must be a non-negative integer$/
+      );
     });
 
     test("not a number", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - abc 19")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: move number must be a non-negative integer"
-      });
+      ).toThrowError(
+        /^Invalid FEN - move number must be a non-negative integer$/
+      );
     });
   });
 
   describe("invalid full moves", () => {
     test("negative number", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 -3")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: number of full moves must be a positive integer"
-      });
+      ).toThrowError(
+        /^Invalid FEN - number of full moves must be a positive integer$/
+      );
     });
 
     test("zero", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 0")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: number of full moves must be a positive integer"
-      });
+      ).toThrowError(
+        /^Invalid FEN - number of full moves must be a positive integer$/
+      );
     });
 
     test("not a number", () => {
-      expect(
+      expect(() =>
         validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 abc")
-      ).toEqual({
-        ok: false,
-        error: "Invalid FEN: number of full moves must be a positive integer"
-      });
+      ).toThrowError(
+        /^Invalid FEN - number of full moves must be a positive integer$/
+      );
     });
   });
 });

@@ -197,20 +197,21 @@ export function swapColor(color: Color): Color {
   return color === COLOR.WHITE ? COLOR.BLACK : COLOR.WHITE;
 }
 
-export function validateFEN(fen: string): { ok: boolean; error?: string } {
+export function validateFEN(fen: string): void {
   const fields = fen.split(" ");
 
   if (fields.length != 6)
-    return {
-      ok: false,
-      error: "Invalid FEN: string must contain 6 space delimited fields"
-    };
+    throw new Error(
+      "Invalid FEN - string must contain 6 space delimited fields"
+    );
 
   const validatePosition = (position: string) => {
     const rows = position.split("/");
 
     if (rows.length != 8)
-      throw "Invalid FEN: board position must contain 8 rows delimited by '/'";
+      throw new Error(
+        "Invalid FEN - board position must contain 8 rows delimited by '/'"
+      );
 
     const kings = [
       { regex: /K/g, color: "white" },
@@ -221,10 +222,14 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
       const matches = position.match(king.regex) ?? [];
 
       if (matches.length == 0)
-        throw `Invalid FEN: board position is missing ${king.color} king`;
+        throw new Error(
+          `Invalid FEN - board position is missing ${king.color} king`
+        );
 
       if (matches.length > 1)
-        throw `Invalid FEN: board position contains too many ${king.color} kings`;
+        throw new Error(
+          `Invalid FEN - board position contains too many ${king.color} kings`
+        );
     }
 
     rows.forEach(row => {
@@ -234,7 +239,9 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
       [...row].forEach(symbol => {
         if (isDigit(symbol)) {
           if (previousWasNumber)
-            throw "Invalid FEN: board position contains consecutive digits";
+            throw new Error(
+              "Invalid FEN - board position contains consecutive digits"
+            );
 
           numSquares += parseInt(symbol);
           previousWasNumber = true;
@@ -243,9 +250,9 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
         }
 
         if (!isPieceValid(symbol.toLowerCase()))
-          throw (
-            "Invalid FEN: board position contains an invalid piece symbol: " +
-            symbol
+          throw new Error(
+            "Invalid FEN - board position contains an invalid piece symbol: " +
+              symbol
           );
 
         numSquares++;
@@ -253,18 +260,20 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
       });
 
       if (numSquares != 8)
-        throw "Invalid FEN: board position contains a row that does not have 8 squares";
+        throw new Error(
+          "Invalid FEN - board position contains a row that does not have 8 squares"
+        );
     });
   };
 
   const validateTurn = (turn: string) => {
     if (/^(w|b)$/.test(turn) == false)
-      throw "Invalid FEN: invalid side to move";
+      throw new Error("Invalid FEN - invalid side to move");
   };
 
   const validateCastling = (castling: string) => {
     if (/[^kKqQ-]/.test(castling))
-      throw "Invalid FEN: string contains invalid castling rights";
+      throw new Error("Invalid FEN - string contains invalid castling rights");
   };
 
   const validateEnPassant = (enPassant: string, turn: string) => {
@@ -273,31 +282,29 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
       (turn == "w" && enPassant[1] == "3") ||
       (turn == "b" && enPassant[1] == "6")
     )
-      throw "Invalid FEN: invalid en-passant square";
+      throw new Error("Invalid FEN - invalid en-passant square");
   };
 
   const validateHalfMoves = (halfMoves: string) => {
     if (/^\d+$/.test(halfMoves) == false)
-      throw "Invalid FEN: move number must be a non-negative integer";
+      throw new Error(
+        "Invalid FEN - move number must be a non-negative integer"
+      );
   };
 
   const validateFullMoves = (fullMoves: string) => {
     if (/^[1-9]\d*$/.test(fullMoves) == false)
-      throw "Invalid FEN: number of full moves must be a positive integer";
+      throw new Error(
+        "Invalid FEN - number of full moves must be a positive integer"
+      );
   };
 
-  try {
-    validateTurn(fields[1]);
-    validateCastling(fields[2]);
-    validateEnPassant(fields[3], fields[1]);
-    validateHalfMoves(fields[4]);
-    validateFullMoves(fields[5]);
-    validatePosition(fields[0]);
-  } catch (e) {
-    return { ok: false, error: `${e}` };
-  }
-
-  return { ok: true };
+  validateTurn(fields[1]);
+  validateCastling(fields[2]);
+  validateEnPassant(fields[3], fields[1]);
+  validateHalfMoves(fields[4]);
+  validateFullMoves(fields[5]);
+  validatePosition(fields[0]);
 }
 
 export class Chess {
