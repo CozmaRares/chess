@@ -102,16 +102,16 @@ export const MOVE_FLAG_MASKS: Record<keyof typeof MOVE_FLAGS, number> = Object.f
 } as const);
 
 const PAWN_OFFSETS = Object.freeze({
-  b: [16, 32, 17, 15],
-  w: [-16, -32, -17, -15]
+  b: [8, 16, 9, 7],
+  w: [-8, -16, -9, -7]
 });
 
 const PIECE_OFFSETS = Object.freeze({
-  n: [-18, -33, -31, -14, 18, 33, 31, 14],
-  b: [-17, -15, 17, 15],
-  r: [-16, 1, 16, -1],
-  q: [-17, -16, -15, 1, 17, 16, 15, -1],
-  k: [-17, -16, -15, 1, 17, 16, 15, -1]
+  n: [-10, -17, -15, -6, 10, 17, 15, 6],
+  b: [-9, -7, 9, 7],
+  r: [-8, 1, 8, -1],
+  q: [-9, -7, 9, 7, -8, 1, 8, -1],
+  k: [-9, -7, 9, 7, -8, 1, 8, -1]
 });
 
 export function rank(squareIdx: number): number {
