@@ -10,21 +10,18 @@ export const PIECE = Object.freeze({
   KING: "k"
 } as const);
 
-const PIECE_SYMBOLS = Object.freeze([
-  PIECE.PAWN,
+function isPieceValid(string: string): boolean {
+  return (Object.values(PIECE) as string[]).includes(string);
+}
+
+export const PIECE_PROMOTION = Object.freeze([
   PIECE.KNIGHT,
   PIECE.BISHOP,
   PIECE.ROOK,
-  PIECE.QUEEN,
-  PIECE.KING
-] as string[]);
+  PIECE.QUEEN
+] as const);
 
-export type PiecePromotionType =
-  | typeof PIECE.KNIGHT
-  | typeof PIECE.BISHOP
-  | typeof PIECE.ROOK
-  | typeof PIECE.QUEEN;
-
+export type PiecePromotionType = typeof PIECE_PROMOTION[number];
 export type PieceType = typeof PIECE[keyof typeof PIECE];
 
 export const COLOR = Object.freeze({
@@ -51,16 +48,22 @@ export const SQUARES = Object.freeze([
   'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8'
 ] as const);
 
+function isSquareValid(string: string): boolean {
+  return (SQUARES as readonly string[]).includes(string);
+}
+
 export const EMPTY_SQUARE = "-";
 export type Square = typeof SQUARES[number] | typeof EMPTY_SQUARE;
 
+// prettier-ignore
 export const MOVE_FLAGS = Object.freeze({
-  NORMAL: "n",
-  CAPTURE: "c",
-  BIG_PAWN: "p",
-  K_CASTLE: "k",
-  Q_CASTLE: "q",
-  EN_PASSANT: "e"
+  NORMAL:     0b0000001,
+  CAPTURE:    0b0000010,
+  K_CASTLE:   0b0000100,
+  Q_CASTLE:   0b0001000,
+  PAWN_JUMP:  0b0010000,
+  PROMOTION:  0b0100000,
+  EN_PASSANT: 0b1000000,
 } as const);
 
 export type MoveFlag = typeof MOVE_FLAGS[keyof typeof MOVE_FLAGS];
@@ -91,19 +94,14 @@ export const COLOR_MASKS: Record<keyof typeof COLOR, number> = Object.freeze({
   BLACK: 0b10
 } as const);
 
-// prettier-ignore
-export const MOVE_FLAG_MASKS: Record<keyof typeof MOVE_FLAGS, number> = Object.freeze({
-  NORMAL:     0b000001,
-  CAPTURE:    0b000010,
-  BIG_PAWN:   0b000100,
-  K_CASTLE:   0b001000,
-  Q_CASTLE:   0b010000,
-  EN_PASSANT: 0b100000
-} as const);
+const PAWN_PROMOTION_RANK = Object.freeze({
+  w: 8,
+  b: 1
+});
 
 const PAWN_OFFSETS = Object.freeze({
-  b: [8, 16, 9, 7],
-  w: [-8, -16, -9, -7]
+  w: 8,
+  b: -8
 });
 
 const PIECE_OFFSETS = Object.freeze({
@@ -113,6 +111,69 @@ const PIECE_OFFSETS = Object.freeze({
   q: [-9, -7, 9, 7, -8, 1, 8, -1],
   k: [-9, -7, 9, 7, -8, 1, 8, -1]
 });
+
+type Board = (Piece | null)[];
+
+function generatePawnMoves(
+  board: Readonly<Board>,
+  position: number,
+  color: Color
+) {
+  const moves: Move[] = [];
+
+  const generatePromotionMoves = (from: number, to: number) => {
+    const fromAlgebraic = algebraic(from);
+    const toAlgebraic = algebraic(to);
+
+    PIECE_PROMOTION.forEach(piece =>
+      moves.push({
+        from: fromAlgebraic,
+        to: toAlgebraic,
+        promotion: piece,
+        flag: MOVE_FLAGS.PROMOTION
+      })
+    );
+  };
+
+  const offset = PAWN_OFFSETS[color];
+  const nextPosition = position + offset;
+
+  if (board[nextPosition] == null) {
+    if (rank(nextPosition) == PAWN_PROMOTION_RANK[color])
+      generatePromotionMoves(position, nextPosition);
+    else {
+      moves.push({
+        from: algebraic(position),
+        to: algebraic(nextPosition),
+        flag: MOVE_FLAGS.NORMAL
+      });
+
+      const jumpPosition = nextPosition + offset;
+
+      if (board[jumpPosition] == null)
+        moves.push({
+          from: algebraic(position),
+          to: algebraic(jumpPosition),
+          flag: MOVE_FLAGS.PAWN_JUMP
+        });
+    }
+  }
+
+  [1, -1].forEach(value => {
+    const attackPosition = nextPosition + value;
+
+    if (board[attackPosition] != null)
+      moves.push({
+        from: algebraic(position),
+        to: algebraic(attackPosition),
+        flag: MOVE_FLAGS.CAPTURE
+      });
+  });
+
+  return moves;
+}
+
+function generatePieceMoves(board: Readonly<Board>) {}
 
 export function rank(squareIdx: number): number {
   return squareIdx >> 3;
@@ -181,7 +242,7 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
           return;
         }
 
-        if (PIECE_SYMBOLS.includes(symbol.toLowerCase()) == false)
+        if (!isPieceValid(symbol.toLowerCase()))
           throw (
             "Invalid FEN: board position contains an invalid piece symbol: " +
             symbol
@@ -207,11 +268,11 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
   };
 
   const validateEnPassant = (enPassant: string, turn: string) => {
-    if (!/^(-|[abcdefgh][36])$/.test(enPassant))
-      throw "Invalid FEN: invalid en-passant square";
-    if (turn == "w" && enPassant[1] == "3")
-      throw "Invalid FEN: invalid en-passant square";
-    if (turn == "b" && enPassant[1] == "6")
+    if (
+      !/^(-|[abcdefgh][36])$/.test(enPassant) ||
+      (turn == "w" && enPassant[1] == "3") ||
+      (turn == "b" && enPassant[1] == "6")
+    )
       throw "Invalid FEN: invalid en-passant square";
   };
 
@@ -240,10 +301,10 @@ export function validateFEN(fen: string): { ok: boolean; error?: string } {
 }
 
 export class Chess {
-  private _board: (Piece | null)[] = [];
+  private _board: Board = [];
   private _turn: Color = COLOR.WHITE;
   private _castling: Record<Color, number> = { w: 0, b: 0 };
-  private _enPassant: Square = "-";
+  private _enPassant: Square = EMPTY_SQUARE;
   private _halfMoves = 0;
   private _fullMoves = 1;
 
