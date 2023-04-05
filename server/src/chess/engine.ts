@@ -7,7 +7,7 @@ export const PIECE = Object.freeze({
   BISHOP: "b",
   ROOK: "r",
   QUEEN: "q",
-  KING: "k"
+  KING: "k",
 } as const);
 
 function isPieceValid(string: string): boolean {
@@ -18,7 +18,7 @@ export const PIECE_PROMOTION = Object.freeze([
   PIECE.KNIGHT,
   PIECE.BISHOP,
   PIECE.ROOK,
-  PIECE.QUEEN
+  PIECE.QUEEN,
 ] as const);
 
 export type PiecePromotionType = typeof PIECE_PROMOTION[number];
@@ -26,7 +26,7 @@ export type PieceType = typeof PIECE[keyof typeof PIECE];
 
 export const COLOR = Object.freeze({
   WHITE: "w",
-  BLACK: "b"
+  BLACK: "b",
 } as const);
 
 export type Color = typeof COLOR[keyof typeof COLOR];
@@ -45,7 +45,7 @@ export const SQUARES = Object.freeze([
   'a5', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'h5',
   'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6',
   'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7',
-  'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8'
+  'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8',
 ] as const);
 
 function isSquareValid(string: string): boolean {
@@ -86,22 +86,22 @@ export const PIECE_MASKS: Record<keyof typeof PIECE, number> = Object.freeze({
   BISHOP: 0b000100,
   ROOK:   0b001000,
   QUEEN:  0b010000,
-  KING:   0b100000
+  KING:   0b100000,
 } as const);
 
 export const COLOR_MASKS: Record<keyof typeof COLOR, number> = Object.freeze({
   WHITE: 0b01,
-  BLACK: 0b10
+  BLACK: 0b10,
 } as const);
 
 const PAWN_PROMOTION_RANK = Object.freeze({
   w: 8,
-  b: 1
+  b: 1,
 });
 
 const PAWN_OFFSETS = Object.freeze({
   w: 8,
-  b: -8
+  b: -8,
 });
 
 const PIECE_OFFSETS = Object.freeze({
@@ -109,7 +109,7 @@ const PIECE_OFFSETS = Object.freeze({
   b: [-9, -7, 9, 7],
   r: [-8, 1, 8, -1],
   q: [-9, -7, 9, 7, -8, 1, 8, -1],
-  k: [-9, -7, 9, 7, -8, 1, 8, -1]
+  k: [-9, -7, 9, 7, -8, 1, 8, -1],
 });
 
 type Board = (Piece | null)[];
@@ -130,7 +130,7 @@ function generatePawnMoves(
         from: fromAlgebraic,
         to: toAlgebraic,
         promotion: piece,
-        flag: MOVE_FLAGS.PROMOTION
+        flag: MOVE_FLAGS.PROMOTION,
       })
     );
   };
@@ -145,7 +145,7 @@ function generatePawnMoves(
       moves.push({
         from: algebraic(position),
         to: algebraic(nextPosition),
-        flag: MOVE_FLAGS.NORMAL
+        flag: MOVE_FLAGS.NORMAL,
       });
 
       const jumpPosition = nextPosition + offset;
@@ -154,7 +154,7 @@ function generatePawnMoves(
         moves.push({
           from: algebraic(position),
           to: algebraic(jumpPosition),
-          flag: MOVE_FLAGS.PAWN_JUMP
+          flag: MOVE_FLAGS.PAWN_JUMP,
         });
     }
   }
@@ -166,7 +166,7 @@ function generatePawnMoves(
       moves.push({
         from: algebraic(position),
         to: algebraic(attackPosition),
-        flag: MOVE_FLAGS.CAPTURE
+        flag: MOVE_FLAGS.CAPTURE,
       });
   });
 
@@ -215,7 +215,7 @@ export function validateFEN(fen: string): void {
 
     const kings = [
       { regex: /K/g, color: "white" },
-      { regex: /k/g, color: "black" }
+      { regex: /k/g, color: "black" },
     ];
 
     for (const king of kings) {
@@ -323,7 +323,44 @@ export class Chess {
     this.load(DEFAULT_POSITION);
   }
 
-  load(fen: string) {}
+  load(fen: string) {
+    validateFEN(fen);
+
+    const fields = fen.split(" ");
+
+    const position = fields[0];
+    this._board = new Array(64).fill(null);
+
+    let square = 0;
+
+    for (let i = 0; i < position.length; i++) {
+      if (position[i] == "/") continue;
+
+      if (isDigit(position[i])) {
+        square += parseInt(position[i]);
+        continue;
+      }
+
+      this._board[square++] = {
+        color: position[i] < "a" ? COLOR.WHITE : COLOR.BLACK,
+        type: position[i].toLowerCase() as PieceType,
+      };
+    }
+
+    this._turn = fields[1] as Color;
+
+    this._castling = { w: 0, b: 0 };
+    const castling = fields[2];
+    if (castling.indexOf("K") > -1) this._castling.w |= MOVE_FLAGS.K_CASTLE;
+    if (castling.indexOf("Q") > -1) this._castling.w |= MOVE_FLAGS.Q_CASTLE;
+    if (castling.indexOf("k") > -1) this._castling.b |= MOVE_FLAGS.K_CASTLE;
+    if (castling.indexOf("q") > -1) this._castling.b |= MOVE_FLAGS.Q_CASTLE;
+
+    this._enPassant = fields[3] as Square;
+
+    this._halfMoves = parseInt(fields[4]);
+    this._fullMoves = parseInt(fields[5]);
+  }
 
   getMoves() {}
 
