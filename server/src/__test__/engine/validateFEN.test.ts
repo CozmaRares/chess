@@ -6,6 +6,26 @@ describe("valid FEN strings", () => {
     expect(validateFEN(DEFAULT_POSITION)).toBe(undefined);
   });
 
+  test("1. e4", () => {
+    expect(
+      validateFEN("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
+    ).toBe(undefined);
+  });
+
+  test("2. e5", () => {
+    expect(
+      validateFEN(
+        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
+      )
+    ).toBe(undefined);
+  });
+
+  test("3. ke2", () => {
+    expect(
+      validateFEN("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 1 2")
+    ).toBe(undefined);
+  });
+
   test("random position 1", () => {
     expect(
       validateFEN("r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 19")
