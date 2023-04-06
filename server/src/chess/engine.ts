@@ -48,6 +48,11 @@ export const SQUARES = Object.freeze([
   'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
 ] as const);
 
+const EN_PASSANT_SQUARES = {
+  w: ["a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6"],
+  b: ["a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3"],
+};
+
 function isSquareValid(string: string): boolean {
   return (SQUARES as readonly string[]).includes(string);
 }
@@ -112,7 +117,7 @@ const PIECE_OFFSETS = Object.freeze({
   k: [-9, -7, 9, 7, -8, 1, 8, -1],
 });
 
-type Board = (Piece | null)[];
+export type Board = (Piece | null)[];
 
 function generatePawnMoves(
   board: Readonly<Board>,
@@ -185,6 +190,12 @@ export function file(squareIdx: number): number {
 
 export function isDigit(c: string): boolean {
   return /^\d$/.test(c);
+}
+
+export function squareIndex(square: Square): number {
+  if (square == EMPTY_SQUARE) return -1;
+
+  return SQUARES.indexOf(square);
 }
 
 export function algebraic(square: number): Square {
@@ -276,12 +287,8 @@ export function validateFEN(fen: string): void {
       throw new Error("Invalid FEN - string contains invalid castling rights");
   };
 
-  const validateEnPassant = (enPassant: string, turn: string) => {
-    if (
-      !/^(-|[abcdefgh][36])$/.test(enPassant) ||
-      (turn == "w" && enPassant[1] == "3") ||
-      (turn == "b" && enPassant[1] == "6")
-    )
+  const validateEnPassant = (enPassant: string, turn: Color) => {
+    if (enPassant != "-" && !EN_PASSANT_SQUARES[turn].includes(enPassant))
       throw new Error("Invalid FEN - invalid en-passant square");
   };
 
@@ -301,35 +308,44 @@ export function validateFEN(fen: string): void {
 
   validateTurn(fields[1]);
   validateCastling(fields[2]);
-  validateEnPassant(fields[3], fields[1]);
+  validateEnPassant(fields[3], fields[1] as Color);
   validateHalfMoves(fields[4]);
   validateFullMoves(fields[5]);
   validatePosition(fields[0]);
 }
 
-export class Chess {
-  private _board: Board = [];
-  private _turn: Color = COLOR.WHITE;
-  private _castling: Record<Color, number> = { w: 0, b: 0 };
-  private _enPassant: Square = EMPTY_SQUARE;
-  private _halfMoves = 0;
-  private _fullMoves = 1;
+export default class Chess {
+  private _board: Board;
+  private _turn: Color;
+  private _castling: Record<Color, number>;
+  private _enPassant: Square;
+  private _halfMoves;
+  private _fullMoves;
 
-  constructor(fen = DEFAULT_POSITION) {
-    this.load(fen);
+  private constructor(
+    board: Board,
+    turn: Color,
+    castling: Record<Color, number>,
+    enPassant: Square,
+    halfMoves: number,
+    fullMoves: number
+  ) {
+    this._board = board;
+    this._turn = turn;
+    this._castling = castling;
+    this._enPassant = enPassant;
+    this._halfMoves = halfMoves;
+    this._fullMoves = fullMoves;
   }
 
-  reset() {
-    this.load(DEFAULT_POSITION);
-  }
-
-  load(fen: string) {
+  static load(fen = DEFAULT_POSITION) {
     validateFEN(fen);
+
+    const builder = new Chess.Builder();
 
     const fields = fen.split(" ");
 
     const position = fields[0];
-    this._board = new Array(64).fill(null);
 
     let square = 0;
 
@@ -341,25 +357,32 @@ export class Chess {
         continue;
       }
 
-      this._board[square++] = {
+      const piece = {
         color: position[i] < "a" ? COLOR.WHITE : COLOR.BLACK,
         type: position[i].toLowerCase() as PieceType,
       };
+
+      builder.addPiece(square++, piece);
     }
 
-    this._turn = fields[1] as Color;
+    builder.setTurn(fields[1] as Color);
+    builder.setCastling(fields[2]);
+    builder.setEnPassant(fields[3] as Square);
+    builder.setHalfMoves(fields[4]);
+    builder.setFullMoves(fields[5]);
 
-    this._castling = { w: 0, b: 0 };
-    const castling = fields[2];
-    if (castling.indexOf("K") > -1) this._castling.w |= MOVE_FLAGS.K_CASTLE;
-    if (castling.indexOf("Q") > -1) this._castling.w |= MOVE_FLAGS.Q_CASTLE;
-    if (castling.indexOf("k") > -1) this._castling.b |= MOVE_FLAGS.K_CASTLE;
-    if (castling.indexOf("q") > -1) this._castling.b |= MOVE_FLAGS.Q_CASTLE;
+    return builder.build();
+  }
 
-    this._enPassant = fields[3] as Square;
+  reset() {
+    const chess = Chess.load();
 
-    this._halfMoves = parseInt(fields[4]);
-    this._fullMoves = parseInt(fields[5]);
+    this._board = chess._board;
+    this._turn = chess._turn;
+    this._castling = chess._castling;
+    this._enPassant = chess._enPassant;
+    this._halfMoves = chess._halfMoves;
+    this._fullMoves = chess._fullMoves;
   }
 
   getFEN() {
@@ -410,7 +433,9 @@ export class Chess {
     ].join(" ");
   }
 
-  getPiece(square: number) {
+  getPiece(square: Square | number) {
+    if (typeof square != "number") square = squareIndex(square);
+
     return this._board[square];
   }
 
@@ -446,4 +471,66 @@ export class Chess {
   squareColor() {}
 
   history() {}
+
+  static Builder = class {
+    private _board: Board;
+    private _turn: Color;
+    private _castling: Record<Color, number>;
+    private _enPassant: Square;
+    private _halfMoves: number;
+    private _fullMoves: number;
+
+    constructor() {
+      this._board = new Array(64).fill(null);
+      this._turn = COLOR.WHITE;
+      this._castling = { w: 0, b: 0 };
+      this._enPassant = EMPTY_SQUARE;
+      this._halfMoves = 0;
+      this._fullMoves = 1;
+    }
+
+    addPiece(square: Square | number, piece: Piece) {
+      if (typeof square != "number") square = squareIndex(square);
+
+      if (square < 0 || square > 63) return;
+
+      this._board[square] = piece;
+    }
+
+    setTurn(turn: Color) {
+      this._turn = turn;
+      this._enPassant = EMPTY_SQUARE;
+    }
+
+    setCastling(castling: string) {
+      if (castling.indexOf("K") > -1) this._castling.w |= MOVE_FLAGS.K_CASTLE;
+      if (castling.indexOf("Q") > -1) this._castling.w |= MOVE_FLAGS.Q_CASTLE;
+      if (castling.indexOf("k") > -1) this._castling.b |= MOVE_FLAGS.K_CASTLE;
+      if (castling.indexOf("q") > -1) this._castling.b |= MOVE_FLAGS.Q_CASTLE;
+    }
+
+    setEnPassant(enPassant: Square) {
+      if (EN_PASSANT_SQUARES[this._turn].includes(enPassant))
+        this._enPassant = enPassant;
+    }
+
+    setHalfMoves(halfMoves: string) {
+      this._halfMoves = parseInt(halfMoves);
+    }
+
+    setFullMoves(fullMoves: string) {
+      this._fullMoves = parseInt(fullMoves);
+    }
+
+    build() {
+      return new Chess(
+        this._board,
+        this._turn,
+        this._castling,
+        this._enPassant,
+        this._halfMoves,
+        this._fullMoves
+      );
+    }
+  };
 }
