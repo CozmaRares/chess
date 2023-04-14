@@ -36,6 +36,8 @@ export type Piece = {
   color: Color;
 };
 
+export type Board = (Piece | null)[];
+
 // prettier-ignore
 export const SQUARES = Object.freeze([
   'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8',
@@ -99,94 +101,35 @@ export const COLOR_MASKS: Record<keyof typeof COLOR, number> = Object.freeze({
   BLACK: 0b10,
 } as const);
 
-const PAWN_PROMOTION_RANK = Object.freeze({
-  w: 8,
-  b: 1,
-});
-
-const PAWN_OFFSETS = Object.freeze({
-  w: 8,
-  b: -8,
-});
-
-const PIECE_OFFSETS = Object.freeze({
-  n: [-10, -17, -15, -6, 10, 17, 15, 6],
-  b: [-9, -7, 9, 7],
-  r: [-8, 1, 8, -1],
-  q: [-9, -7, 9, 7, -8, 1, 8, -1],
-  k: [-9, -7, 9, 7, -8, 1, 8, -1],
-});
-
-export type Board = (Piece | null)[];
-
-function generatePawnMoves(
-  board: Readonly<Board>,
-  position: number,
-  color: Color
-) {
-  const moves: Move[] = [];
-
-  const generatePromotionMoves = (from: number, to: number) => {
-    const fromAlgebraic = algebraic(from);
-    const toAlgebraic = algebraic(to);
-
-    PIECE_PROMOTION.forEach(piece =>
-      moves.push({
-        from: fromAlgebraic,
-        to: toAlgebraic,
-        promotion: piece,
-        flag: MOVE_FLAGS.PROMOTION,
-      })
-    );
-  };
-
-  const offset = PAWN_OFFSETS[color];
-  const nextPosition = position + offset;
-
-  if (board[nextPosition] == null) {
-    if (rank(nextPosition) == PAWN_PROMOTION_RANK[color])
-      generatePromotionMoves(position, nextPosition);
-    else {
-      moves.push({
-        from: algebraic(position),
-        to: algebraic(nextPosition),
-        flag: MOVE_FLAGS.NORMAL,
-      });
-
-      const jumpPosition = nextPosition + offset;
-
-      if (board[jumpPosition] == null)
-        moves.push({
-          from: algebraic(position),
-          to: algebraic(jumpPosition),
-          flag: MOVE_FLAGS.PAWN_JUMP,
-        });
-    }
-  }
-
-  [1, -1].forEach(value => {
-    const attackPosition = nextPosition + value;
-
-    if (board[attackPosition] != null)
-      moves.push({
-        from: algebraic(position),
-        to: algebraic(attackPosition),
-        flag: MOVE_FLAGS.CAPTURE,
-      });
-  });
-
-  return moves;
-}
-
-function generatePieceMoves(board: Readonly<Board>) {}
-
 export function rank(squareIdx: number): number {
   return squareIdx >> 3;
 }
 
+export const RANK = Object.freeze({
+  FIRST: 0,
+  SECOND: 1,
+  THIRD: 2,
+  FORTH: 3,
+  FIFTH: 4,
+  SIXTH: 5,
+  SEVENTH: 6,
+  EIGHTH: 7,
+} as const);
+
 export function file(squareIdx: number): number {
   return squareIdx & 0b111;
 }
+
+export const FILE: Record<string, number> = Object.freeze({
+  A: 0,
+  B: 1,
+  C: 2,
+  D: 3,
+  E: 4,
+  F: 5,
+  G: 6,
+  H: 7,
+});
 
 export function isDigit(c: string): boolean {
   return /^\d$/.test(c);
@@ -312,6 +255,222 @@ export function validateFEN(fen: string): void {
   validateHalfMoves(fields[4]);
   validateFullMoves(fields[5]);
   validatePosition(fields[0]);
+}
+
+const PAWN_MOVE_INFO = Object.freeze({
+  w: { offset: 8, promotion: RANK.EIGHTH },
+  b: { offset: -8, promotion: RANK.FIRST },
+});
+
+const PAWN_ATTACKS = Object.freeze([
+  { offset: 1, excludedFile: FILE.H },
+  { offset: -1, excludedFile: FILE.A },
+]);
+
+const PIECE_MOVE_INFO = Object.freeze({
+  n: {
+    generateMultiple: false,
+    moves: [
+      { offset: -10, excludedFiles: [FILE.A, FILE.B] },
+      { offset: -17, excludedFiles: [FILE.H] },
+      { offset: -15, excludedFiles: [FILE.A] },
+      { offset: -6, excludedFiles: [FILE.G, FILE.H] },
+      { offset: 10, excludedFiles: [FILE.G, FILE.H] },
+      { offset: 17, excludedFiles: [FILE.G] },
+      { offset: 15, excludedFiles: [FILE.A] },
+      { offset: 6, excludedFiles: [FILE.A, FILE.B] },
+    ],
+  },
+  b: {
+    generateMultiple: true,
+    moves: [
+      { offset: -9, excludedFiles: [FILE.H] },
+      { offset: -7, excludedFiles: [FILE.A] },
+      { offset: 9, excludedFiles: [FILE.H] },
+      { offset: 7, excludedFiles: [FILE.A] },
+    ],
+  },
+  r: {
+    generateMultiple: true,
+    moves: [
+      { offset: -8, excludedFiles: [] },
+      { offset: 1, excludedFiles: [FILE.H] },
+      { offset: 8, excludedFiles: [] },
+      { offset: -1, excludedFiles: [FILE.A] },
+    ],
+  },
+  q: {
+    generateMultiple: true,
+    moves: [
+      { offset: -9, excludedFiles: [FILE.H] },
+      { offset: -7, excludedFiles: [FILE.A] },
+      { offset: 9, excludedFiles: [FILE.H] },
+      { offset: 7, excludedFiles: [FILE.A] },
+      { offset: -8, excludedFiles: [] },
+      { offset: 1, excludedFiles: [FILE.H] },
+      { offset: 8, excludedFiles: [] },
+      { offset: -1, excludedFiles: [FILE.A] },
+    ],
+  },
+  k: {
+    generateMultiple: false,
+    moves: [
+      { offset: -9, excludedFiles: [FILE.H] },
+      { offset: -7, excludedFiles: [FILE.A] },
+      { offset: 9, excludedFiles: [FILE.H] },
+      { offset: 7, excludedFiles: [FILE.A] },
+      { offset: -8, excludedFiles: [] },
+      { offset: 1, excludedFiles: [FILE.H] },
+      { offset: 8, excludedFiles: [] },
+      { offset: -1, excludedFiles: [FILE.A] },
+    ],
+  },
+});
+
+function generatePawnMoves(
+  board: Readonly<Board>,
+  position: number,
+  color: Color
+): Move[] {
+  if (board[position] == null) return [];
+
+  const moves: Move[] = [];
+
+  const generatePromotionMoves = (from: number, to: number) => {
+    const fromAlgebraic = algebraic(from);
+    const toAlgebraic = algebraic(to);
+
+    PIECE_PROMOTION.forEach(piece =>
+      moves.push({
+        from: fromAlgebraic,
+        to: toAlgebraic,
+        promotion: piece,
+        flag: MOVE_FLAGS.PROMOTION,
+      })
+    );
+  };
+
+  const offset = PAWN_MOVE_INFO[color].offset;
+  const nextPosition = position + offset;
+
+  if (board[nextPosition] == null) {
+    if (rank(nextPosition) == PAWN_MOVE_INFO[color].promotion)
+      generatePromotionMoves(position, nextPosition);
+    else {
+      moves.push({
+        from: algebraic(position),
+        to: algebraic(nextPosition),
+        flag: MOVE_FLAGS.NORMAL,
+      });
+
+      const jumpPosition = nextPosition + offset;
+
+      if (board[jumpPosition] == null)
+        moves.push({
+          from: algebraic(position),
+          to: algebraic(jumpPosition),
+          flag: MOVE_FLAGS.PAWN_JUMP,
+        });
+    }
+  }
+
+  PAWN_ATTACKS.forEach(({ offset, excludedFile }) => {
+    const attackPosition = nextPosition + offset;
+
+    if (file(position) != excludedFile && board[attackPosition] != null)
+      moves.push({
+        from: algebraic(position),
+        to: algebraic(attackPosition),
+        flag: MOVE_FLAGS.CAPTURE,
+      });
+  });
+
+  return moves;
+}
+
+function generatePieceMoves(
+  board: Readonly<Board>,
+  position: number,
+  piece: Piece
+): Move[] {
+  if (piece.type == PIECE.PAWN)
+    return generatePawnMoves(board, position, piece.color);
+
+  const type = piece.type; // hacked the type system
+
+  const generateOnce = () => {
+    const moves: Move[] = [];
+
+    PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
+      const nextPosition = position + offset;
+
+      if (nextPosition < 0 || nextPosition >= 64) return;
+
+      if (excludedFiles.includes(file(nextPosition))) return;
+
+      const attackedPiece = board[nextPosition];
+
+      if (attackedPiece == null) {
+        moves.push({
+          from: algebraic(position),
+          to: algebraic(nextPosition),
+          flag: MOVE_FLAGS.NORMAL,
+        });
+        return;
+      }
+
+      if (attackedPiece.color == piece.color) return;
+
+      moves.push({
+        from: algebraic(position),
+        to: algebraic(nextPosition),
+        flag: MOVE_FLAGS.CAPTURE,
+      });
+    });
+
+    return moves;
+  };
+
+  const generateMultiple = () => {
+    const moves: Move[] = [];
+
+    PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
+      let nextPosition = position + offset;
+
+      while (
+        nextPosition >= 0 &&
+        nextPosition < 64 &&
+        !excludedFiles.includes(file(nextPosition))
+      ) {
+        const attackedPiece = board[nextPosition];
+
+        if (attackedPiece == null) {
+          moves.push({
+            from: algebraic(position),
+            to: algebraic(nextPosition),
+            flag: MOVE_FLAGS.NORMAL,
+          });
+          nextPosition += offset;
+          continue;
+        }
+
+        if (attackedPiece.color != piece.color)
+          moves.push({
+            from: algebraic(position),
+            to: algebraic(nextPosition),
+            flag: MOVE_FLAGS.CAPTURE,
+          });
+
+        break;
+      }
+    });
+
+    return moves;
+  };
+
+  return PIECE_MOVE_INFO[piece.type].generateMultiple
+    ? generateMultiple()
+    : generateOnce();
 }
 
 export default class Chess {
@@ -471,7 +630,13 @@ export default class Chess {
 
   getMoves() {}
 
-  getMovesForSquare(square: Square) {}
+  getMovesForSquare(square: Square | number): Move[] {
+    if (typeof square != "number") square = squareIndex(square);
+
+    const piece = this.getPiece(square);
+
+    return piece == null ? [] : generatePieceMoves(this._board, square, piece);
+  }
 
   makeMove() {}
 
