@@ -424,7 +424,7 @@ export default class Chess {
     if (this._castling.b & MOVE_FLAGS.Q_CASTLE) castling += "q";
 
     return [
-      position.substring(1),
+      position.substring(1), // remove first '/'
       this._turn,
       castling,
       this._enPassant,
@@ -437,6 +437,32 @@ export default class Chess {
     if (typeof square != "number") square = squareIndex(square);
 
     return this._board[square];
+  }
+
+  toAscii() {
+    let str = "";
+
+    for (let i = 0; i < 64; i++) {
+      if (i % 8 == 0) str += `\n${8 - Math.floor(i / 8)}`;
+
+      const piece = this.getPiece(i);
+
+      if (piece == null) {
+        str += " .";
+        continue;
+      }
+
+      const pieceLetter =
+        piece.color == COLOR.BLACK
+          ? piece.type.toLowerCase()
+          : piece.type.toUpperCase();
+
+      str += ` ${pieceLetter}`;
+    }
+
+    str += "\n  A B C D E F G H";
+
+    return str;
   }
 
   getMoves() {}
