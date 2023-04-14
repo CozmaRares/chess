@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import Chess, { COLOR, PIECE } from "../../chess/engine";
+import Chess, { COLOR, PIECE } from "../chess/engine";
 
 describe("valid FEN strings", () => {
   test("default", () => {

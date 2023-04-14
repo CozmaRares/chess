@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_POSITION, validateFEN } from "../../chess/engine";
+import { DEFAULT_POSITION, validateFEN } from "../chess/engine";
 
 describe("valid FEN strings", () => {
   test("starting position", () => {
