@@ -416,12 +416,16 @@ export default class Chess {
       emptySquares = 0;
     }
 
+    if (emptySquares) position += `${emptySquares}`;
+
     let castling = "";
 
     if (this._castling.w & MOVE_FLAGS.K_CASTLE) castling += "K";
     if (this._castling.w & MOVE_FLAGS.Q_CASTLE) castling += "Q";
     if (this._castling.b & MOVE_FLAGS.K_CASTLE) castling += "k";
     if (this._castling.b & MOVE_FLAGS.Q_CASTLE) castling += "q";
+
+    if (castling == "") castling = "-";
 
     return [
       position.substring(1), // remove first '/'
