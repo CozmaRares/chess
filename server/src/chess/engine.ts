@@ -388,7 +388,7 @@ function generatePawnMoves(
   return moves;
 }
 
-function generatePieceMoves(
+export function generatePieceMoves(
   board: Readonly<Board>,
   position: number,
   piece: Piece
