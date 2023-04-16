@@ -164,13 +164,12 @@ describe("simple moves", () => {
         expectedMoves[key].forEach(({ square, moves: expectedMoves }) => {
           const moves = chess.getMovesForSquare(square);
 
-          // console.log({ square, expectedMoves, moves });
-          // console.log();
+          expect(moves).toHaveLength(expectedMoves.length);
 
-          expect(moves.length).toEqual(expectedMoves.length);
-
-          moves.forEach(move => expect(expectedMoves).toContain(move));
-          expectedMoves.forEach(move => expect(moves).toContain(move));
+          moves.forEach(move => expect(expectedMoves).toContainEqual(move));
+          expectedMoves.forEach(expectedMove =>
+            expect(moves).toContainEqual(expectedMove)
+          );
         })
       )
     );

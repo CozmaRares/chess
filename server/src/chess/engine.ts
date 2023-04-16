@@ -106,14 +106,14 @@ export function rank(squareIdx: number): number {
 }
 
 export const RANK = Object.freeze({
-  FIRST: 0,
-  SECOND: 1,
-  THIRD: 2,
-  FORTH: 3,
-  FIFTH: 4,
-  SIXTH: 5,
-  SEVENTH: 6,
-  EIGHTH: 7,
+  FIRST: 7,
+  SECOND: 6,
+  THIRD: 5,
+  FORTH: 4,
+  FIFTH: 3,
+  SIXTH: 2,
+  SEVENTH: 1,
+  EIGHTH: 0,
 } as const);
 
 export function file(squareIdx: number): number {
@@ -144,7 +144,7 @@ export function squareIndex(square: Square): number {
 export function algebraic(square: number): Square {
   const f = file(square);
   const r = rank(square);
-  return ("abcdefgh"[f] + "12345678"[r]) as Square;
+  return ("abcdefgh"[f] + "87654321"[r]) as Square;
 }
 
 export function swapColor(color: Color): Color {
@@ -258,8 +258,8 @@ export function validateFEN(fen: string): void {
 }
 
 const PAWN_MOVE_INFO = Object.freeze({
-  w: { offset: 8, promotion: RANK.EIGHTH },
-  b: { offset: -8, promotion: RANK.FIRST },
+  w: { offset: -8, promotion: RANK.EIGHTH, jumpRank: RANK.SECOND },
+  b: { offset: 8, promotion: RANK.FIRST, jumpRank: RANK.SEVENTH },
 });
 
 const PAWN_ATTACKS = Object.freeze([
@@ -363,21 +363,25 @@ function generatePawnMoves(
         flag: MOVE_FLAGS.NORMAL,
       });
 
-      const jumpPosition = nextPosition + offset;
+      if (rank(position) == PAWN_MOVE_INFO[color].jumpRank) {
+        const jumpPosition = nextPosition + offset;
 
-      if (board[jumpPosition] == null)
-        moves.push({
-          from: algebraic(position),
-          to: algebraic(jumpPosition),
-          flag: MOVE_FLAGS.PAWN_JUMP,
-        });
+        if (board[jumpPosition] == null)
+          moves.push({
+            from: algebraic(position),
+            to: algebraic(jumpPosition),
+            flag: MOVE_FLAGS.PAWN_JUMP,
+          });
+      }
     }
   }
 
   PAWN_ATTACKS.forEach(({ offset, excludedFile }) => {
     const attackPosition = nextPosition + offset;
 
-    if (file(position) != excludedFile && board[attackPosition] != null)
+    const piece = board[attackPosition];
+
+    if (file(position) != excludedFile && piece != null && piece.color != color)
       moves.push({
         from: algebraic(position),
         to: algebraic(attackPosition),
