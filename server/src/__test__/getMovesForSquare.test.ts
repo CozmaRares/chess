@@ -176,9 +176,29 @@ describe("pawn moves", () => {
         ],
       },
     ],
+    blocked: [
+      {
+        square: "c7",
+        moves: [],
+      },
+      {
+        square: "c6",
+        moves: [],
+      },
+      {
+        square: "e7",
+        moves: [
+          {
+            from: "e7",
+            to: "e6",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+        ],
+      },
+    ],
   };
 
-  runTest("7k/1P5p/5p2/4p3/3P4/2P5/P5p1/K7 w - - 0 1", expectedMoves);
+  runTest("7k/1Pp1p2p/2P2p2/4p3/3P4/2P5/P5p1/K7 w - - 0 1", expectedMoves);
 });
 
 describe("knight moves", () => {
