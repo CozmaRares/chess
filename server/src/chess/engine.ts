@@ -284,8 +284,8 @@ const PIECE_MOVE_INFO = Object.freeze({
   b: {
     generateMultiple: true,
     moves: [
-      { offset: -9, excludedFiles: [FILE.H] },
-      { offset: -7, excludedFiles: [FILE.A] },
+      { offset: -9, excludedFiles: [FILE.A] },
+      { offset: -7, excludedFiles: [FILE.H] },
       { offset: 9, excludedFiles: [FILE.H] },
       { offset: 7, excludedFiles: [FILE.A] },
     ],
@@ -435,13 +435,11 @@ export function generatePieceMoves(
     const moves: Move[] = [];
 
     PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
+      if (excludedFiles.includes(file(position))) return;
+
       let nextPosition = position + offset;
 
-      while (
-        nextPosition >= 0 &&
-        nextPosition < 64 &&
-        !excludedFiles.includes(file(nextPosition))
-      ) {
+      while (nextPosition >= 0 && nextPosition < 64) {
         const attackedPiece = board[nextPosition];
 
         if (attackedPiece == null) {
@@ -450,7 +448,11 @@ export function generatePieceMoves(
             to: algebraic(nextPosition),
             flag: MOVE_FLAGS.NORMAL,
           });
+
+          if (excludedFiles.includes(file(nextPosition))) break;
+
           nextPosition += offset;
+
           continue;
         }
 
