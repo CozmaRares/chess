@@ -271,14 +271,14 @@ const PIECE_MOVE_INFO = Object.freeze({
   n: {
     generateMultiple: false,
     moves: [
+      { offset: -17, excludedFiles: [FILE.A] },
       { offset: -10, excludedFiles: [FILE.A, FILE.B] },
-      { offset: -17, excludedFiles: [FILE.H] },
-      { offset: -15, excludedFiles: [FILE.A] },
-      { offset: -6, excludedFiles: [FILE.G, FILE.H] },
-      { offset: 10, excludedFiles: [FILE.G, FILE.H] },
-      { offset: 17, excludedFiles: [FILE.G] },
-      { offset: 15, excludedFiles: [FILE.A] },
       { offset: 6, excludedFiles: [FILE.A, FILE.B] },
+      { offset: 15, excludedFiles: [FILE.A] },
+      { offset: 17, excludedFiles: [FILE.H] },
+      { offset: 10, excludedFiles: [FILE.G, FILE.H] },
+      { offset: -6, excludedFiles: [FILE.G, FILE.H] },
+      { offset: -15, excludedFiles: [FILE.H] },
     ],
   },
   b: {
@@ -406,30 +406,26 @@ export function generatePieceMoves(
     const moves: Move[] = [];
 
     PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
+      if (excludedFiles.includes(file(position))) return;
+
       const nextPosition = position + offset;
 
       if (nextPosition < 0 || nextPosition >= 64) return;
 
-      if (excludedFiles.includes(file(nextPosition))) return;
-
       const attackedPiece = board[nextPosition];
 
-      if (attackedPiece == null) {
+      if (attackedPiece == null)
         moves.push({
           from: algebraic(position),
           to: algebraic(nextPosition),
           flag: MOVE_FLAGS.NORMAL,
         });
-        return;
-      }
-
-      if (attackedPiece.color == piece.color) return;
-
-      moves.push({
-        from: algebraic(position),
-        to: algebraic(nextPosition),
-        flag: MOVE_FLAGS.CAPTURE,
-      });
+      else if (attackedPiece.color != piece.color)
+        moves.push({
+          from: algebraic(position),
+          to: algebraic(nextPosition),
+          flag: MOVE_FLAGS.CAPTURE,
+        });
     });
 
     return moves;
