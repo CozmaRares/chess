@@ -731,3 +731,164 @@ describe("bishop moves", () => {
 
   runTest("K6b/8/3b4/2b3b1/8/8/B1BB4/7k w - - 0 1", expectedMoves);
 });
+
+describe("rook moves", () => {
+  const expectedMoves: ExpectedMoves = {
+    exclude_a: [
+      {
+        square: "a5",
+        moves: [
+          {
+            from: "a5",
+            to: "a1",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "a2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "a3",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "a4",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "a6",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "a7",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "a8",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "b5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "c5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "d5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "e5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "f5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "g5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "a5",
+            to: "h5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+        ],
+      },
+    ],
+    exclude_h: [
+      {
+        square: "h2",
+        moves: [
+          {
+            from: "h2",
+            to: "h1",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "h3",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "h4",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "h5",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "h6",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "h7",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "h8",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "g2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "f2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "e2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "d2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "c2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "b2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+          {
+            from: "h2",
+            to: "a2",
+            flag: MOVE_FLAGS.NORMAL,
+          },
+        ],
+      },
+    ],
+  };
+
+  runTest("8/6K1/8/R7/8/8/7r/6k1 w - - 0 1", expectedMoves);
+});

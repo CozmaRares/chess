@@ -302,8 +302,8 @@ const PIECE_MOVE_INFO = Object.freeze({
   q: {
     generateMultiple: true,
     moves: [
-      { offset: -9, excludedFiles: [FILE.H] },
-      { offset: -7, excludedFiles: [FILE.A] },
+      { offset: -9, excludedFiles: [FILE.A] },
+      { offset: -7, excludedFiles: [FILE.H] },
       { offset: 9, excludedFiles: [FILE.H] },
       { offset: 7, excludedFiles: [FILE.A] },
       { offset: -8, excludedFiles: [] },
@@ -315,8 +315,8 @@ const PIECE_MOVE_INFO = Object.freeze({
   k: {
     generateMultiple: false,
     moves: [
-      { offset: -9, excludedFiles: [FILE.H] },
-      { offset: -7, excludedFiles: [FILE.A] },
+      { offset: -9, excludedFiles: [FILE.A] },
+      { offset: -7, excludedFiles: [FILE.H] },
       { offset: 9, excludedFiles: [FILE.H] },
       { offset: 7, excludedFiles: [FILE.A] },
       { offset: -8, excludedFiles: [] },
