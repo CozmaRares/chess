@@ -672,7 +672,7 @@ export default class Chess {
 
     const piece = this.getPiece(square);
 
-    if (piece == null) return [];
+    if (piece == null || piece.color != this._turn) return [];
 
     const moves = generatePieceMoves(this._board, square, piece);
 
