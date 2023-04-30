@@ -8,5 +8,5 @@ test("", () => {
   expect(chess.isSquareAttacked("e4", "b")).toBe(false);
 
   expect(chess.isSquareAttacked("e5", "w")).toBe(false);
-  expect(chess.isSquareAttacked("e5", "b")).toBe(false);
+  expect(chess.isSquareAttacked("e5", "b")).toBe(true);
 });

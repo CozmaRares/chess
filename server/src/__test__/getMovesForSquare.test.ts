@@ -28,21 +28,23 @@ function runTest(fen: string, expectedMoves: ExpectedMoves) {
   );
 }
 
+function runTests(
+  fen: string,
+  expectedMovesW: ExpectedMoves,
+  expectedMovesB: ExpectedMoves
+) {
+  runTest(fen.replace("%", "w"), expectedMovesW);
+  runTest(fen.replace("%", "b"), expectedMovesB);
+}
+
 describe("pawn moves", () => {
-  const expectedMoves: ExpectedMoves = {
+  const expectedMovesW: ExpectedMoves = {
     can_jump: [
       {
         square: "a2",
         moves: [
           { from: "a2", to: "a3", flag: MOVE_FLAGS.NORMAL },
           { from: "a2", to: "a4", flag: MOVE_FLAGS.PAWN_JUMP },
-        ],
-      },
-      {
-        square: "h7",
-        moves: [
-          { from: "h7", to: "h6", flag: MOVE_FLAGS.NORMAL },
-          { from: "h7", to: "h5", flag: MOVE_FLAGS.PAWN_JUMP },
         ],
       },
     ],
@@ -56,6 +58,41 @@ describe("pawn moves", () => {
           { from: "b7", to: "b8", flag: MOVE_FLAGS.PROMOTION, promotion: "q" },
         ],
       },
+    ],
+    regular: [
+      {
+        square: "c3",
+        moves: [{ from: "c3", to: "c4", flag: MOVE_FLAGS.NORMAL }],
+      },
+    ],
+    attack: [
+      {
+        square: "d4",
+        moves: [
+          { from: "d4", to: "d5", flag: MOVE_FLAGS.NORMAL },
+          { from: "d4", to: "e5", flag: MOVE_FLAGS.CAPTURE },
+        ],
+      },
+    ],
+    blocked: [
+      {
+        square: "c6",
+        moves: [],
+      },
+    ],
+  };
+
+  const expectedMovesB: ExpectedMoves = {
+    can_jump: [
+      {
+        square: "h7",
+        moves: [
+          { from: "h7", to: "h6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h7", to: "h5", flag: MOVE_FLAGS.PAWN_JUMP },
+        ],
+      },
+    ],
+    promotion: [
       {
         square: "g2",
         moves: [
@@ -68,22 +105,11 @@ describe("pawn moves", () => {
     ],
     regular: [
       {
-        square: "c3",
-        moves: [{ from: "c3", to: "c4", flag: MOVE_FLAGS.NORMAL }],
-      },
-      {
         square: "f6",
         moves: [{ from: "f6", to: "f5", flag: MOVE_FLAGS.NORMAL }],
       },
     ],
     attack: [
-      {
-        square: "d4",
-        moves: [
-          { from: "d4", to: "d5", flag: MOVE_FLAGS.NORMAL },
-          { from: "d4", to: "e5", flag: MOVE_FLAGS.CAPTURE },
-        ],
-      },
       {
         square: "e5",
         moves: [
@@ -97,10 +123,7 @@ describe("pawn moves", () => {
         square: "c7",
         moves: [],
       },
-      {
-        square: "c6",
-        moves: [],
-      },
+
       {
         square: "e7",
         moves: [{ from: "e7", to: "e6", flag: MOVE_FLAGS.NORMAL }],
@@ -108,31 +131,15 @@ describe("pawn moves", () => {
     ],
   };
 
-  runTest("7k/1Pp1p2p/2P2p2/4p3/3P4/2P5/P5p1/K7 w - - 0 1", expectedMoves);
+  runTests(
+    "7k/1Pp1p2p/2P2p2/4p3/3P4/2P5/P5p1/K7 % - - 0 1",
+    expectedMovesW,
+    expectedMovesB
+  );
 });
 
 describe("knight moves", () => {
-  const expectedMoves: ExpectedMoves = {
-    exclude_a: [
-      {
-        square: "a8",
-        moves: [
-          { from: "a8", to: "b6", flag: MOVE_FLAGS.NORMAL },
-          { from: "a8", to: "c7", flag: MOVE_FLAGS.NORMAL },
-        ],
-      },
-    ],
-    exclude_b: [
-      {
-        square: "b7",
-        moves: [
-          { from: "b7", to: "a5", flag: MOVE_FLAGS.NORMAL },
-          { from: "b7", to: "c5", flag: MOVE_FLAGS.NORMAL },
-          { from: "b7", to: "d6", flag: MOVE_FLAGS.NORMAL },
-          { from: "b7", to: "d8", flag: MOVE_FLAGS.NORMAL },
-        ],
-      },
-    ],
+  const expectedMovesW: ExpectedMoves = {
     exclude_g: [
       {
         square: "g2",
@@ -162,18 +169,6 @@ describe("knight moves", () => {
           { from: "a2", to: "b4", flag: MOVE_FLAGS.NORMAL },
         ],
       },
-      {
-        square: "c3",
-        moves: [
-          { from: "c3", to: "e4", flag: MOVE_FLAGS.NORMAL },
-          { from: "c3", to: "b5", flag: MOVE_FLAGS.CAPTURE },
-          { from: "c3", to: "a4", flag: MOVE_FLAGS.NORMAL },
-          { from: "c3", to: "a2", flag: MOVE_FLAGS.CAPTURE },
-          { from: "c3", to: "b1", flag: MOVE_FLAGS.NORMAL },
-          { from: "c3", to: "d1", flag: MOVE_FLAGS.NORMAL },
-          { from: "c3", to: "e2", flag: MOVE_FLAGS.NORMAL },
-        ],
-      },
     ],
     regular: [
       {
@@ -192,11 +187,53 @@ describe("knight moves", () => {
     ],
   };
 
-  runTest("n7/1n6/8/1K1kN3/8/2n5/N5N1/7N w - - 0 1", expectedMoves);
+  const expectedMovesB: ExpectedMoves = {
+    exclude_a: [
+      {
+        square: "a8",
+        moves: [
+          { from: "a8", to: "b6", flag: MOVE_FLAGS.NORMAL },
+          { from: "a8", to: "c7", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+    exclude_b: [
+      {
+        square: "b7",
+        moves: [
+          { from: "b7", to: "a5", flag: MOVE_FLAGS.NORMAL },
+          { from: "b7", to: "c5", flag: MOVE_FLAGS.NORMAL },
+          { from: "b7", to: "d6", flag: MOVE_FLAGS.NORMAL },
+          { from: "b7", to: "d8", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+
+    attack: [
+      {
+        square: "c3",
+        moves: [
+          { from: "c3", to: "e4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "b5", flag: MOVE_FLAGS.CAPTURE },
+          { from: "c3", to: "a4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "a2", flag: MOVE_FLAGS.CAPTURE },
+          { from: "c3", to: "b1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "d1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "e2", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+  };
+
+  runTests(
+    "n7/1n6/8/1K1kN3/8/2n5/N5N1/7N % - - 0 1",
+    expectedMovesW,
+    expectedMovesB
+  );
 });
 
 describe("bishop moves", () => {
-  const expectedMoves: ExpectedMoves = {
+  const expectedMovesW: ExpectedMoves = {
     exclude_a: [
       {
         square: "a2",
@@ -208,20 +245,6 @@ describe("bishop moves", () => {
           { from: "a2", to: "f7", flag: MOVE_FLAGS.NORMAL },
           { from: "a2", to: "g8", flag: MOVE_FLAGS.NORMAL },
           { from: "a2", to: "b1", flag: MOVE_FLAGS.NORMAL },
-        ],
-      },
-    ],
-    exclude_h: [
-      {
-        square: "h8",
-        moves: [
-          { from: "h8", to: "g7", flag: MOVE_FLAGS.NORMAL },
-          { from: "h8", to: "f6", flag: MOVE_FLAGS.NORMAL },
-          { from: "h8", to: "e5", flag: MOVE_FLAGS.NORMAL },
-          { from: "h8", to: "d4", flag: MOVE_FLAGS.NORMAL },
-          { from: "h8", to: "c3", flag: MOVE_FLAGS.NORMAL },
-          { from: "h8", to: "b2", flag: MOVE_FLAGS.NORMAL },
-          { from: "h8", to: "a1", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -239,6 +262,41 @@ describe("bishop moves", () => {
           { from: "d2", to: "g5", flag: MOVE_FLAGS.CAPTURE },
         ],
       },
+    ],
+    regular: [
+      {
+        square: "c2",
+        moves: [
+          { from: "c2", to: "b1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "d1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "b3", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "a4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "d3", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "e4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "f5", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "g6", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "h7", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+  };
+
+  const expectedMovesB: ExpectedMoves = {
+    exclude_h: [
+      {
+        square: "h8",
+        moves: [
+          { from: "h8", to: "g7", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "f6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "e5", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "d4", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "c3", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "b2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "a1", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+    attack: [
       {
         square: "g5",
         moves: [
@@ -281,29 +339,17 @@ describe("bishop moves", () => {
         ],
       },
     ],
-    regular: [
-      {
-        square: "c2",
-        moves: [
-          { from: "c2", to: "b1", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "d1", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "b3", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "a4", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "d3", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "e4", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "f5", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "g6", flag: MOVE_FLAGS.NORMAL },
-          { from: "c2", to: "h7", flag: MOVE_FLAGS.NORMAL },
-        ],
-      },
-    ],
   };
 
-  runTest("K6b/8/3b4/2b3b1/8/8/B1BB4/7k w - - 0 1", expectedMoves);
+  runTests(
+    "K6b/8/3b4/2b3b1/8/8/B1BB4/7k % - - 0 1",
+    expectedMovesW,
+    expectedMovesB
+  );
 });
 
 describe("rook moves", () => {
-  const expectedMoves: ExpectedMoves = {
+  const expectedMovesW: ExpectedMoves = {
     exclude_a: [
       {
         square: "a5",
@@ -325,6 +371,9 @@ describe("rook moves", () => {
         ],
       },
     ],
+  };
+
+  const expectedMovesB: ExpectedMoves = {
     exclude_h: [
       {
         square: "h2",
@@ -348,12 +397,12 @@ describe("rook moves", () => {
     ],
   };
 
-  runTest("8/6K1/8/R7/8/8/7r/6k1 w - - 0 1", expectedMoves);
+  runTests("8/6K1/8/R7/8/8/7r/6k1 % - - 0 1", expectedMovesW, expectedMovesB);
 });
 
 describe("queen and king moves", () => {
-  const expectedMoves: ExpectedMoves = {
-    queen: [
+  const expectedMovesW: ExpectedMoves = {
+    white_queen: [
       {
         square: "h8",
         moves: [
@@ -380,6 +429,23 @@ describe("queen and king moves", () => {
           { from: "h8", to: "a1", flag: MOVE_FLAGS.NORMAL },
         ],
       },
+    ],
+    white_king: [
+      {
+        square: "g3",
+        moves: [
+          { from: "g3", to: "f3", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "f4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "g4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "h4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "h3", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+  };
+
+  const expectedMovesB: ExpectedMoves = {
+    black_queen: [
       {
         square: "a2",
         moves: [
@@ -407,17 +473,7 @@ describe("queen and king moves", () => {
         ],
       },
     ],
-    king: [
-      {
-        square: "g3",
-        moves: [
-          { from: "g3", to: "f3", flag: MOVE_FLAGS.NORMAL },
-          { from: "g3", to: "f4", flag: MOVE_FLAGS.NORMAL },
-          { from: "g3", to: "g4", flag: MOVE_FLAGS.NORMAL },
-          { from: "g3", to: "h4", flag: MOVE_FLAGS.NORMAL },
-          { from: "g3", to: "h3", flag: MOVE_FLAGS.NORMAL },
-        ],
-      },
+    black_king: [
       {
         square: "c7",
         moves: [
@@ -431,5 +487,5 @@ describe("queen and king moves", () => {
     ],
   };
 
-  runTest("7Q/2k5/8/8/8/6K1/q7/8 w - - 0 1", expectedMoves);
+  runTests("7Q/2k5/8/8/8/6K1/q7/8 % - - 0 1", expectedMovesW, expectedMovesB);
 });

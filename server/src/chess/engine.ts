@@ -512,23 +512,25 @@ export default class Chess {
     this._halfMoves = halfMoves;
     this._fullMoves = fullMoves;
     this._computeMoves();
-    this._computeAttacks();
   }
 
   private _computeMoves() {
-    for (let i = 0; i < this._board.length; i++)
-      this._moves = this._moves.concat(this.getMovesForSquare(i));
-  }
-
-  private _computeAttacks() {
     this._attacks = new Array(64).fill(0);
 
-    this.getMoves().forEach(({ from, to }) => {
-      const pieceColor = (this.getPiece(from) as Piece).color;
-      const square = squareIndex(to);
+    for (let i = 0; i < this._board.length; i++) {
+      const { piece, moves } = this._getMovesForSquare(i);
 
-      this._attacks[square] |= COLOR_MASKS[pieceColor];
-    });
+      this._moves = this._moves.concat(this._processMoves(piece, moves));
+
+      if (piece != null) {
+        const pieceColor = piece.color;
+
+        moves.forEach(
+          ({ to }) =>
+            (this._attacks[squareIndex(to)] |= COLOR_MASKS[pieceColor])
+        );
+      }
+    }
   }
 
   static load(fen = DEFAULT_POSITION) {
@@ -667,16 +669,16 @@ export default class Chess {
     return this._moves;
   }
 
-  getMovesForSquare(square: Square | number): Move[] {
-    if (typeof square != "number") square = squareIndex(square);
-
+  private _getMovesForSquare(square: number) {
     const piece = this.getPiece(square);
+    const moves =
+      piece == null ? [] : generatePieceMoves(this._board, square, piece);
 
-    if (piece == null || piece.color != this._turn) return [];
+    return { piece, moves };
+  }
 
-    const moves = generatePieceMoves(this._board, square, piece);
-
-    if (piece.type != PIECE.KING) return moves;
+  private _processMoves(piece: Piece | null, moves: Move[]) {
+    if (piece?.type != PIECE.KING) return moves;
 
     const other_color = COLOR_MASKS[swapColor(piece.color)];
 
@@ -685,6 +687,16 @@ export default class Chess {
 
       return (this._attacks[square] & other_color) == 0;
     }, this);
+  }
+
+  getMovesForSquare(square: Square | number): Move[] {
+    if (typeof square != "number") square = squareIndex(square);
+
+    if (square < 0 || square > 63) return [];
+
+    const { piece, moves } = this._getMovesForSquare(square);
+
+    return this._processMoves(piece, moves);
   }
 
   makeMove() {}
