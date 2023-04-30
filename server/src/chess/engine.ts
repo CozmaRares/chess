@@ -492,8 +492,10 @@ export default class Chess {
   private _enPassant;
   private _halfMoves;
   private _fullMoves;
+
   private _moves: Move[] = [];
   private _attacks: number[] = [];
+  private _kings: Record<Color, number> = { w: 0, b: 0 };
 
   private constructor(
     board: Board,
@@ -690,32 +692,61 @@ export default class Chess {
   isSquareAttacked(square: Square | number, color: Color) {
     if (typeof square != "number") square = squareIndex(square);
 
-    return (this._attacks[square] & COLOR_MASKS[color]) != 0;
+    return square < 0 || square > 63
+      ? false
+      : (this._attacks[square] & COLOR_MASKS[color]) != 0;
   }
 
-  isCheck() {}
+  isCheck() {
+    const square = this._kings[this._turn];
+    return this.isSquareAttacked(square, swapColor(this._turn));
+  }
 
-  isCheckMate() {}
+  isCheckMate() {
+    return this.isCheck() && this._moves.length === 0;
+  }
 
-  isStalemate() {}
+  isStalemate() {
+    return !this.isCheck() && this._moves.length === 0;
+  }
 
-  isInsufficientMaterial() {}
+  // TODO
+  isInsufficientMaterial() {
+    return false;
+  }
 
-  isThreefoldRepetition() {}
+  // TODO
+  isThreefoldRepetition() {
+    return false;
+  }
 
-  isDraw() {}
+  isDraw() {
+    return (
+      this._halfMoves >= 100 || // 50 moves per side = 100 half moves
+      this.isStalemate() ||
+      this.isInsufficientMaterial() ||
+      this.isThreefoldRepetition()
+    );
+  }
 
-  isGameOver() {}
+  isGameOver() {
+    return this.isCheckMate() || this.isDraw();
+  }
 
+  // TODO
   private _addToHistory() {}
 
+  // TODO
   // and a way to track how many moves were undo'ed
   undo() {}
 
+  // TODO
   turn() {}
 
+  // TODO
   squareColor() {}
 
+  // TODO
   history() {}
 
   static Builder = class {
