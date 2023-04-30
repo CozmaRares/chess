@@ -411,9 +411,6 @@ describe("queen and king moves", () => {
       {
         square: "g3",
         moves: [
-          { from: "g3", to: "h2", flag: MOVE_FLAGS.NORMAL },
-          { from: "g3", to: "g2", flag: MOVE_FLAGS.NORMAL },
-          { from: "g3", to: "f2", flag: MOVE_FLAGS.NORMAL },
           { from: "g3", to: "f3", flag: MOVE_FLAGS.NORMAL },
           { from: "g3", to: "f4", flag: MOVE_FLAGS.NORMAL },
           { from: "g3", to: "g4", flag: MOVE_FLAGS.NORMAL },
@@ -424,9 +421,6 @@ describe("queen and king moves", () => {
       {
         square: "c7",
         moves: [
-          { from: "c7", to: "d8", flag: MOVE_FLAGS.NORMAL },
-          { from: "c7", to: "c8", flag: MOVE_FLAGS.NORMAL },
-          { from: "c7", to: "b8", flag: MOVE_FLAGS.NORMAL },
           { from: "c7", to: "b7", flag: MOVE_FLAGS.NORMAL },
           { from: "c7", to: "b6", flag: MOVE_FLAGS.NORMAL },
           { from: "c7", to: "c6", flag: MOVE_FLAGS.NORMAL },

@@ -86,19 +86,18 @@ type InternalMove = Move & {
   beforeFEN: string;
 };
 
-// prettier-ignore
-export const PIECE_MASKS: Record<keyof typeof PIECE, number> = Object.freeze({
-  PAWN:   0b000001,
-  KNIGHT: 0b000010,
-  BISHOP: 0b000100,
-  ROOK:   0b001000,
-  QUEEN:  0b010000,
-  KING:   0b100000,
+export const PIECE_MASKS: Record<PieceType, number> = Object.freeze({
+  p: 0b000001,
+  n: 0b000010,
+  b: 0b000100,
+  r: 0b001000,
+  q: 0b010000,
+  k: 0b100000,
 } as const);
 
-export const COLOR_MASKS: Record<keyof typeof COLOR, number> = Object.freeze({
-  WHITE: 0b01,
-  BLACK: 0b10,
+export const COLOR_MASKS: Record<Color, number> = Object.freeze({
+  w: 0b01,
+  b: 0b10,
 } as const);
 
 export function rank(squareIdx: number): number {
@@ -135,10 +134,21 @@ export function isDigit(c: string): boolean {
   return /^\d$/.test(c);
 }
 
-export function squareIndex(square: Square): number {
-  if (square == EMPTY_SQUARE) return -1;
+export function squareIndex(square: string): number {
+  if (square.length != 2) return -1;
 
-  return SQUARES.indexOf(square);
+  const file = square[0];
+  const rank = square[1];
+
+  if (file < "a" || file > "h") return -1;
+
+  if (rank < "1" || rank > "8") return -1;
+
+  return (
+    ("8".charCodeAt(0) - rank.charCodeAt(0)) * 8 +
+    file.charCodeAt(0) -
+    "a".charCodeAt(0)
+  );
 }
 
 export function algebraic(square: number): Square {
@@ -476,12 +486,14 @@ export function generatePieceMoves(
 }
 
 export default class Chess {
-  private _board: Board;
-  private _turn: Color;
-  private _castling: Record<Color, number>;
-  private _enPassant: Square;
+  private _board;
+  private _turn;
+  private _castling;
+  private _enPassant;
   private _halfMoves;
   private _fullMoves;
+  private _moves: Move[] = [];
+  private _attacks: number[] = [];
 
   private constructor(
     board: Board,
@@ -497,6 +509,24 @@ export default class Chess {
     this._enPassant = enPassant;
     this._halfMoves = halfMoves;
     this._fullMoves = fullMoves;
+    this._computeMoves();
+    this._computeAttacks();
+  }
+
+  private _computeMoves() {
+    for (let i = 0; i < this._board.length; i++)
+      this._moves = this._moves.concat(this.getMovesForSquare(i));
+  }
+
+  private _computeAttacks() {
+    this._attacks = new Array(64).fill(0);
+
+    this.getMoves().forEach(({ from, to }) => {
+      const pieceColor = (this.getPiece(from) as Piece).color;
+      const square = squareIndex(to);
+
+      this._attacks[square] |= COLOR_MASKS[pieceColor];
+    });
   }
 
   static load(fen = DEFAULT_POSITION) {
@@ -601,7 +631,7 @@ export default class Chess {
   getPiece(square: Square | number) {
     if (typeof square != "number") square = squareIndex(square);
 
-    return this._board[square];
+    return square < 0 || square > 63 ? null : this._board[square];
   }
 
   toAscii() {
@@ -630,19 +660,38 @@ export default class Chess {
     return str;
   }
 
-  getMoves() {}
+  getMoves(): Move[] {
+    // TODO: consider checks
+    return this._moves;
+  }
 
   getMovesForSquare(square: Square | number): Move[] {
     if (typeof square != "number") square = squareIndex(square);
 
     const piece = this.getPiece(square);
 
-    return piece == null ? [] : generatePieceMoves(this._board, square, piece);
+    if (piece == null) return [];
+
+    const moves = generatePieceMoves(this._board, square, piece);
+
+    if (piece.type != PIECE.KING) return moves;
+
+    const other_color = COLOR_MASKS[swapColor(piece.color)];
+
+    return moves.filter(({ to }) => {
+      const square = squareIndex(to);
+
+      return (this._attacks[square] & other_color) == 0;
+    }, this);
   }
 
   makeMove() {}
 
-  isSquareAttacked() {}
+  isSquareAttacked(square: Square | number, color: Color) {
+    if (typeof square != "number") square = squareIndex(square);
+
+    return (this._attacks[square] & COLOR_MASKS[color]) != 0;
+  }
 
   isCheck() {}
 

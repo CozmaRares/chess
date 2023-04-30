@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import Chess, { DEFAULT_POSITION } from "../chess/engine";
 
 test("starting position", () => {
-  expect(Chess.load(DEFAULT_POSITION).getFEN()).toEqual(DEFAULT_POSITION);
+  expect(Chess.load().getFEN()).toEqual(DEFAULT_POSITION);
 });
 
 test("1. e4", () => {
