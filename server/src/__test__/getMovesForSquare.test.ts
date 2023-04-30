@@ -34,31 +34,15 @@ describe("pawn moves", () => {
       {
         square: "a2",
         moves: [
-          {
-            from: "a2",
-            to: "a3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "a4",
-            flag: MOVE_FLAGS.PAWN_JUMP,
-          },
+          { from: "a2", to: "a3", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a4", flag: MOVE_FLAGS.PAWN_JUMP },
         ],
       },
       {
         square: "h7",
         moves: [
-          {
-            from: "h7",
-            to: "h6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h7",
-            to: "h5",
-            flag: MOVE_FLAGS.PAWN_JUMP,
-          },
+          { from: "h7", to: "h6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h7", to: "h5", flag: MOVE_FLAGS.PAWN_JUMP },
         ],
       },
     ],
@@ -66,113 +50,45 @@ describe("pawn moves", () => {
       {
         square: "b7",
         moves: [
-          {
-            from: "b7",
-            to: "b8",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "n",
-          },
-          {
-            from: "b7",
-            to: "b8",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "b",
-          },
-          {
-            from: "b7",
-            to: "b8",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "r",
-          },
-          {
-            from: "b7",
-            to: "b8",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "q",
-          },
+          { from: "b7", to: "b8", flag: MOVE_FLAGS.PROMOTION, promotion: "n" },
+          { from: "b7", to: "b8", flag: MOVE_FLAGS.PROMOTION, promotion: "b" },
+          { from: "b7", to: "b8", flag: MOVE_FLAGS.PROMOTION, promotion: "r" },
+          { from: "b7", to: "b8", flag: MOVE_FLAGS.PROMOTION, promotion: "q" },
         ],
       },
       {
         square: "g2",
         moves: [
-          {
-            from: "g2",
-            to: "g1",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "n",
-          },
-          {
-            from: "g2",
-            to: "g1",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "b",
-          },
-          {
-            from: "g2",
-            to: "g1",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "r",
-          },
-          {
-            from: "g2",
-            to: "g1",
-            flag: MOVE_FLAGS.PROMOTION,
-            promotion: "q",
-          },
+          { from: "g2", to: "g1", flag: MOVE_FLAGS.PROMOTION, promotion: "n" },
+          { from: "g2", to: "g1", flag: MOVE_FLAGS.PROMOTION, promotion: "b" },
+          { from: "g2", to: "g1", flag: MOVE_FLAGS.PROMOTION, promotion: "r" },
+          { from: "g2", to: "g1", flag: MOVE_FLAGS.PROMOTION, promotion: "q" },
         ],
       },
     ],
     regular: [
       {
         square: "c3",
-        moves: [
-          {
-            from: "c3",
-            to: "c4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-        ],
+        moves: [{ from: "c3", to: "c4", flag: MOVE_FLAGS.NORMAL }],
       },
       {
         square: "f6",
-        moves: [
-          {
-            from: "f6",
-            to: "f5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-        ],
+        moves: [{ from: "f6", to: "f5", flag: MOVE_FLAGS.NORMAL }],
       },
     ],
     attack: [
       {
         square: "d4",
         moves: [
-          {
-            from: "d4",
-            to: "d5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d4",
-            to: "e5",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
+          { from: "d4", to: "d5", flag: MOVE_FLAGS.NORMAL },
+          { from: "d4", to: "e5", flag: MOVE_FLAGS.CAPTURE },
         ],
       },
       {
         square: "e5",
         moves: [
-          {
-            from: "e5",
-            to: "e4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "d4",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
+          { from: "e5", to: "e4", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "d4", flag: MOVE_FLAGS.CAPTURE },
         ],
       },
     ],
@@ -187,13 +103,7 @@ describe("pawn moves", () => {
       },
       {
         square: "e7",
-        moves: [
-          {
-            from: "e7",
-            to: "e6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-        ],
+        moves: [{ from: "e7", to: "e6", flag: MOVE_FLAGS.NORMAL }],
       },
     ],
   };
@@ -207,16 +117,8 @@ describe("knight moves", () => {
       {
         square: "a8",
         moves: [
-          {
-            from: "a8",
-            to: "b6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a8",
-            to: "c7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "a8", to: "b6", flag: MOVE_FLAGS.NORMAL },
+          { from: "a8", to: "c7", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -224,26 +126,10 @@ describe("knight moves", () => {
       {
         square: "b7",
         moves: [
-          {
-            from: "b7",
-            to: "a5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "b7",
-            to: "c5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "b7",
-            to: "d6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "b7",
-            to: "d8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "b7", to: "a5", flag: MOVE_FLAGS.NORMAL },
+          { from: "b7", to: "c5", flag: MOVE_FLAGS.NORMAL },
+          { from: "b7", to: "d6", flag: MOVE_FLAGS.NORMAL },
+          { from: "b7", to: "d8", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -251,26 +137,10 @@ describe("knight moves", () => {
       {
         square: "g2",
         moves: [
-          {
-            from: "g2",
-            to: "e1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g2",
-            to: "e3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g2",
-            to: "f4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g2",
-            to: "h4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "g2", to: "e1", flag: MOVE_FLAGS.NORMAL },
+          { from: "g2", to: "e3", flag: MOVE_FLAGS.NORMAL },
+          { from: "g2", to: "f4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g2", to: "h4", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -278,16 +148,8 @@ describe("knight moves", () => {
       {
         square: "h1",
         moves: [
-          {
-            from: "h1",
-            to: "f2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h1",
-            to: "g3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "h1", to: "f2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h1", to: "g3", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -295,61 +157,21 @@ describe("knight moves", () => {
       {
         square: "a2",
         moves: [
-          {
-            from: "a2",
-            to: "c1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "c3",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
-          {
-            from: "a2",
-            to: "b4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "a2", to: "c1", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "c3", flag: MOVE_FLAGS.CAPTURE },
+          { from: "a2", to: "b4", flag: MOVE_FLAGS.NORMAL },
         ],
       },
       {
         square: "c3",
         moves: [
-          {
-            from: "c3",
-            to: "e4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c3",
-            to: "b5",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
-          {
-            from: "c3",
-            to: "a4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c3",
-            to: "a2",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
-          {
-            from: "c3",
-            to: "b1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c3",
-            to: "d1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c3",
-            to: "e2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "c3", to: "e4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "b5", flag: MOVE_FLAGS.CAPTURE },
+          { from: "c3", to: "a4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "a2", flag: MOVE_FLAGS.CAPTURE },
+          { from: "c3", to: "b1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "d1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c3", to: "e2", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -357,46 +179,14 @@ describe("knight moves", () => {
       {
         square: "e5",
         moves: [
-          {
-            from: "e5",
-            to: "g6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "f7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "d7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "c6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "c4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "d3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "f3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "e5",
-            to: "g4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "e5", to: "g6", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "f7", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "d7", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "c6", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "c4", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "d3", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "f3", flag: MOVE_FLAGS.NORMAL },
+          { from: "e5", to: "g4", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -411,41 +201,13 @@ describe("bishop moves", () => {
       {
         square: "a2",
         moves: [
-          {
-            from: "a2",
-            to: "b3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "c4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "d5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "e6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "f7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "g8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a2",
-            to: "b1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "a2", to: "b3", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "c4", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "d5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "e6", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "f7", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "g8", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "b1", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -453,41 +215,13 @@ describe("bishop moves", () => {
       {
         square: "h8",
         moves: [
-          {
-            from: "h8",
-            to: "g7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h8",
-            to: "f6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h8",
-            to: "e5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h8",
-            to: "d4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h8",
-            to: "c3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h8",
-            to: "b2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h8",
-            to: "a1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "h8", to: "g7", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "f6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "e5", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "d4", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "c3", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "b2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "a1", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -495,91 +229,27 @@ describe("bishop moves", () => {
       {
         square: "d2",
         moves: [
-          {
-            from: "d2",
-            to: "c1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "e1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "c3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "b4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "a5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "e3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "f4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d2",
-            to: "g5",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
+          { from: "d2", to: "c1", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "e1", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "c3", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "b4", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "a5", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "e3", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "f4", flag: MOVE_FLAGS.NORMAL },
+          { from: "d2", to: "g5", flag: MOVE_FLAGS.CAPTURE },
         ],
       },
       {
         square: "g5",
         moves: [
-          {
-            from: "g5",
-            to: "h6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "h4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "f6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "e7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "d8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "f4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "e3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "g5",
-            to: "d2",
-            flag: MOVE_FLAGS.CAPTURE,
-          },
+          { from: "g5", to: "h6", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "h4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "f6", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "e7", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "d8", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "f4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "e3", flag: MOVE_FLAGS.NORMAL },
+          { from: "g5", to: "d2", flag: MOVE_FLAGS.CAPTURE },
         ],
       },
     ],
@@ -587,91 +257,27 @@ describe("bishop moves", () => {
       {
         square: "c5",
         moves: [
-          {
-            from: "c5",
-            to: "b6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "a7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "d4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "e3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "f2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "g1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "b4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c5",
-            to: "a3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "c5", to: "b6", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "a7", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "d4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "e3", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "f2", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "g1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "b4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c5", to: "a3", flag: MOVE_FLAGS.NORMAL },
         ],
       },
       {
         square: "d6",
         moves: [
-          {
-            from: "d6",
-            to: "c7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "b8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "e7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "f8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "e5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "f4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "g3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "d6",
-            to: "h2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "d6", to: "c7", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "b8", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "e7", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "f8", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "e5", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "f4", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "g3", flag: MOVE_FLAGS.NORMAL },
+          { from: "d6", to: "h2", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -679,51 +285,15 @@ describe("bishop moves", () => {
       {
         square: "c2",
         moves: [
-          {
-            from: "c2",
-            to: "b1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "d1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "b3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "a4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "d3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "e4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "f5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "g6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "c2",
-            to: "h7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "c2", to: "b1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "d1", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "b3", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "a4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "d3", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "e4", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "f5", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "g6", flag: MOVE_FLAGS.NORMAL },
+          { from: "c2", to: "h7", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -738,76 +308,20 @@ describe("rook moves", () => {
       {
         square: "a5",
         moves: [
-          {
-            from: "a5",
-            to: "a1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "a2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "a3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "a4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "a6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "a7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "a8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "b5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "c5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "d5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "e5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "f5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "g5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "a5",
-            to: "h5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "a5", to: "a1", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "a2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "a3", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "a4", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "a6", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "a7", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "a8", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "b5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "c5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "d5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "e5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "f5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "g5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a5", to: "h5", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
@@ -815,80 +329,113 @@ describe("rook moves", () => {
       {
         square: "h2",
         moves: [
-          {
-            from: "h2",
-            to: "h1",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "h3",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "h4",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "h5",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "h6",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "h7",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "h8",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "g2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "f2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "e2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "d2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "c2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "b2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
-          {
-            from: "h2",
-            to: "a2",
-            flag: MOVE_FLAGS.NORMAL,
-          },
+          { from: "h2", to: "h1", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "h3", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "h4", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "h5", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "h6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "h7", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "h8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "g2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "f2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "e2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "d2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "c2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "b2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h2", to: "a2", flag: MOVE_FLAGS.NORMAL },
         ],
       },
     ],
   };
 
   runTest("8/6K1/8/R7/8/8/7r/6k1 w - - 0 1", expectedMoves);
+});
+
+describe("queen and king moves", () => {
+  const expectedMoves: ExpectedMoves = {
+    queen: [
+      {
+        square: "h8",
+        moves: [
+          { from: "h8", to: "g8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "f8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "e8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "d8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "c8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "b8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "a8", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h7", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h5", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h4", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h3", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "h1", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "g7", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "f6", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "e5", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "d4", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "c3", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "b2", flag: MOVE_FLAGS.NORMAL },
+          { from: "h8", to: "a1", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+      {
+        square: "a2",
+        moves: [
+          { from: "a2", to: "a1", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a3", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a4", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a6", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a7", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "a8", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "b2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "b1", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "c2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "d2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "e2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "f2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "g2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "h2", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "b3", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "c4", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "d5", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "e6", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "f7", flag: MOVE_FLAGS.NORMAL },
+          { from: "a2", to: "g8", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+    king: [
+      {
+        square: "g3",
+        moves: [
+          { from: "g3", to: "h2", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "g2", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "f2", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "f3", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "f4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "g4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "h4", flag: MOVE_FLAGS.NORMAL },
+          { from: "g3", to: "h3", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+      {
+        square: "c7",
+        moves: [
+          { from: "c7", to: "d8", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "c8", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "b8", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "b7", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "b6", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "c6", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "d6", flag: MOVE_FLAGS.NORMAL },
+          { from: "c7", to: "d7", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+  };
+
+  runTest("7Q/2k5/8/8/8/6K1/q7/8 w - - 0 1", expectedMoves);
 });

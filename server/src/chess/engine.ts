@@ -21,15 +21,15 @@ export const PIECE_PROMOTION = Object.freeze([
   PIECE.QUEEN,
 ] as const);
 
-export type PiecePromotionType = typeof PIECE_PROMOTION[number];
-export type PieceType = typeof PIECE[keyof typeof PIECE];
+export type PiecePromotionType = (typeof PIECE_PROMOTION)[number];
+export type PieceType = (typeof PIECE)[keyof typeof PIECE];
 
 export const COLOR = Object.freeze({
   WHITE: "w",
   BLACK: "b",
 } as const);
 
-export type Color = typeof COLOR[keyof typeof COLOR];
+export type Color = (typeof COLOR)[keyof typeof COLOR];
 
 export type Piece = {
   type: PieceType;
@@ -60,7 +60,7 @@ function isSquareValid(string: string): boolean {
 }
 
 export const EMPTY_SQUARE = "-";
-export type Square = typeof SQUARES[number] | typeof EMPTY_SQUARE;
+export type Square = (typeof SQUARES)[number] | typeof EMPTY_SQUARE;
 
 // prettier-ignore
 export const MOVE_FLAGS = Object.freeze({
@@ -73,7 +73,7 @@ export const MOVE_FLAGS = Object.freeze({
   EN_PASSANT: 0b1000000,
 } as const);
 
-export type MoveFlag = typeof MOVE_FLAGS[keyof typeof MOVE_FLAGS];
+export type MoveFlag = (typeof MOVE_FLAGS)[keyof typeof MOVE_FLAGS];
 
 export type Move = {
   from: Square;
