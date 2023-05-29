@@ -55,21 +55,16 @@ const EN_PASSANT_SQUARES = {
   b: ["a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3"],
 };
 
-function isSquareValid(string: string): boolean {
-  return (SQUARES as readonly string[]).includes(string);
-}
-
 export const EMPTY_SQUARE = "-";
 export type Square = (typeof SQUARES)[number] | typeof EMPTY_SQUARE;
 
-// prettier-ignore
 export const MOVE_FLAGS = Object.freeze({
-  NORMAL:     0b0000001,
-  CAPTURE:    0b0000010,
-  K_CASTLE:   0b0000100,
-  Q_CASTLE:   0b0001000,
-  PAWN_JUMP:  0b0010000,
-  PROMOTION:  0b0100000,
+  NORMAL: 0b0000001,
+  CAPTURE: 0b0000010,
+  K_CASTLE: 0b0000100,
+  Q_CASTLE: 0b0001000,
+  PAWN_JUMP: 0b0010000,
+  PROMOTION: 0b0100000,
   EN_PASSANT: 0b1000000,
 } as const);
 
@@ -82,9 +77,9 @@ export type Move = {
   promotion?: PiecePromotionType;
 };
 
-type InternalMove = Move & {
-  beforeFEN: string;
-};
+// type InternalMove = Move & {
+//   beforeFEN: string;
+// };
 
 export const PIECE_MASKS: Record<PieceType, number> = Object.freeze({
   p: 0b000001,
@@ -134,21 +129,20 @@ export function isDigit(c: string): boolean {
   return /^\d$/.test(c);
 }
 
-export function squareIndex(square: string): number {
+export function squareIndex(square: string | number): number {
+  if (typeof square === "number") return square;
+
   if (square.length != 2) return -1;
 
   const file = square[0];
   const rank = square[1];
 
-  if (file < "a" || file > "h") return -1;
+  if (file < "a" || file > "h" || "rank" < "1" || rank > "8") return -1;
 
-  if (rank < "1" || rank > "8") return -1;
+  const fileNum = file.charCodeAt(0) - "a".charCodeAt(0);
+  const rankNum = "8".charCodeAt(0) - rank.charCodeAt(0);
 
-  return (
-    ("8".charCodeAt(0) - rank.charCodeAt(0)) * 8 +
-    file.charCodeAt(0) -
-    "a".charCodeAt(0)
-  );
+  return rankNum * 8 + fileNum;
 }
 
 export function algebraic(square: number): Square {
@@ -196,11 +190,11 @@ export function validateFEN(fen: string): void {
         );
     }
 
-    rows.forEach(row => {
+    rows.forEach((row) => {
       let numSquares = 0;
       let previousWasNumber = false;
 
-      [...row].forEach(symbol => {
+      [...row].forEach((symbol) => {
         if (isDigit(symbol)) {
           if (previousWasNumber)
             throw new Error(
@@ -350,7 +344,7 @@ function generatePawnMoves(
     const fromAlgebraic = algebraic(from);
     const toAlgebraic = algebraic(to);
 
-    PIECE_PROMOTION.forEach(piece =>
+    PIECE_PROMOTION.forEach((piece) =>
       moves.push({
         from: fromAlgebraic,
         to: toAlgebraic,
@@ -483,6 +477,15 @@ export function generatePieceMoves(
   return PIECE_MOVE_INFO[piece.type].generateMultiple
     ? generateMultiple()
     : generateOnce();
+}
+
+export function squareColor(square: Square | number): Color {
+  square = squareIndex(square);
+
+  const r = rank(square);
+  const f = file(square);
+
+  return (r + f) % 2 == 0 ? COLOR.WHITE : COLOR.BLACK;
 }
 
 export default class Chess {
@@ -633,7 +636,7 @@ export default class Chess {
   }
 
   getPiece(square: Square | number) {
-    if (typeof square != "number") square = squareIndex(square);
+    square = squareIndex(square);
 
     return square < 0 || square > 63 ? null : this._board[square];
   }
@@ -665,7 +668,6 @@ export default class Chess {
   }
 
   getMoves(): Move[] {
-    // TODO: consider checks
     return this._moves;
   }
 
@@ -677,20 +679,20 @@ export default class Chess {
     return { piece, moves };
   }
 
+  // TODO: consider checks
   private _processMoves(piece: Piece | null, moves: Move[]) {
     if (piece?.type != PIECE.KING) return moves;
 
     const other_color = COLOR_MASKS[swapColor(piece.color)];
 
-    return moves.filter(({ to }) => {
-      const square = squareIndex(to);
-
-      return (this._attacks[square] & other_color) == 0;
-    }, this);
+    return moves.filter(
+      ({ to }) => (this._attacks[squareIndex(to)] & other_color) == 0,
+      this
+    );
   }
 
   getMovesForSquare(square: Square | number): Move[] {
-    if (typeof square != "number") square = squareIndex(square);
+    square = squareIndex(square);
 
     if (square < 0 || square > 63) return [];
 
@@ -702,7 +704,7 @@ export default class Chess {
   makeMove() {}
 
   isSquareAttacked(square: Square | number, color: Color) {
-    if (typeof square != "number") square = squareIndex(square);
+    square = squareIndex(square);
 
     return square < 0 || square > 63
       ? false
@@ -722,9 +724,56 @@ export default class Chess {
     return !this.isCheck() && this._moves.length === 0;
   }
 
-  // TODO
   isInsufficientMaterial() {
-    return false;
+    const remainingPieces: Record<PieceType, Record<Color, number>> = {
+      p: { w: 0, b: 0 },
+      n: { w: 0, b: 0 },
+      b: { w: 0, b: 0 },
+      r: { w: 0, b: 0 },
+      q: { w: 0, b: 0 },
+      k: { w: 0, b: 0 },
+    };
+
+    this._board.forEach((piece) => {
+      if (piece == null) return;
+
+      remainingPieces[piece.type][piece.color]++;
+    });
+
+    if (
+      remainingPieces[PIECE.PAWN][COLOR.WHITE] > 0 ||
+      remainingPieces[PIECE.PAWN][COLOR.BLACK] > 0
+    )
+      return false;
+
+    if (
+      remainingPieces[PIECE.QUEEN][COLOR.WHITE] > 0 ||
+      remainingPieces[PIECE.QUEEN][COLOR.BLACK] > 0
+    )
+      return false;
+
+    if (
+      remainingPieces[PIECE.ROOK][COLOR.WHITE] > 0 ||
+      remainingPieces[PIECE.ROOK][COLOR.BLACK] > 0
+    )
+      return false;
+
+    if (
+      remainingPieces[PIECE.BISHOP][COLOR.WHITE] == 2 ||
+      remainingPieces[PIECE.BISHOP][COLOR.BLACK] == 2
+    )
+      return false;
+
+    if (
+      remainingPieces[PIECE.BISHOP][COLOR.WHITE] +
+        remainingPieces[PIECE.BISHOP][COLOR.BLACK] +
+        remainingPieces[PIECE.KNIGHT][COLOR.WHITE] +
+        remainingPieces[PIECE.KNIGHT][COLOR.BLACK] >=
+      3
+    )
+      return false;
+
+    return true;
   }
 
   // TODO
@@ -754,9 +803,6 @@ export default class Chess {
 
   // TODO
   turn() {}
-
-  // TODO
-  squareColor() {}
 
   // TODO
   history() {}
