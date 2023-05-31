@@ -20,7 +20,6 @@ export const PIECE_PROMOTION = Object.freeze([
   PIECE.ROOK,
   PIECE.QUEEN,
 ] as const);
-
 export type PiecePromotionType = (typeof PIECE_PROMOTION)[number];
 export type PieceType = (typeof PIECE)[keyof typeof PIECE];
 
@@ -28,7 +27,6 @@ export const COLOR = Object.freeze({
   WHITE: "w",
   BLACK: "b",
 } as const);
-
 export type Color = (typeof COLOR)[keyof typeof COLOR];
 
 export type Piece = {
@@ -67,7 +65,6 @@ export const MOVE_FLAGS = Object.freeze({
   PROMOTION: 0b0100000,
   EN_PASSANT: 0b1000000,
 } as const);
-
 export type MoveFlag = (typeof MOVE_FLAGS)[keyof typeof MOVE_FLAGS];
 
 export type Move = {
@@ -131,7 +128,6 @@ export function isDigit(c: string): boolean {
 
 export function squareIndex(square: string | number): number {
   if (typeof square === "number") return square;
-
   if (square.length != 2) return -1;
 
   const file = square[0];
@@ -141,7 +137,6 @@ export function squareIndex(square: string | number): number {
 
   const fileNum = file.charCodeAt(0) - "a".charCodeAt(0);
   const rankNum = "8".charCodeAt(0) - rank.charCodeAt(0);
-
   return rankNum * 8 + fileNum;
 }
 
@@ -203,7 +198,6 @@ export function validateFEN(fen: string): void {
 
           numSquares += parseInt(symbol);
           previousWasNumber = true;
-
           return;
         }
 
@@ -405,7 +399,6 @@ export function generatePieceMoves(
     return generatePawnMoves(board, position, piece.color);
 
   const type = piece.type; // hacked the type system
-
   const generateOnce = () => {
     const moves: Move[] = [];
 
@@ -482,6 +475,8 @@ export function generatePieceMoves(
 export function squareColor(square: Square | number): Color {
   square = squareIndex(square);
 
+  if (square == -1) throw new Error("invalid square");
+
   const r = rank(square);
   const f = file(square);
 
@@ -522,12 +517,10 @@ export default class Chess {
 
     for (let i = 0; i < this._board.length; i++) {
       const { piece, moves } = this._getMovesForSquare(i);
-
       this._moves = this._moves.concat(this._processMoves(piece, moves));
 
       if (piece != null) {
         const pieceColor = piece.color;
-
         moves.forEach(
           ({ to }) =>
             (this._attacks[squareIndex(to)] |= COLOR_MASKS[pieceColor])
@@ -540,11 +533,8 @@ export default class Chess {
     validateFEN(fen);
 
     const builder = new Chess.Builder();
-
     const fields = fen.split(" ");
-
     const position = fields[0];
-
     let square = 0;
 
     for (let i = 0; i < position.length; i++) {
@@ -559,7 +549,6 @@ export default class Chess {
         color: position[i] < "a" ? COLOR.WHITE : COLOR.BLACK,
         type: position[i].toLowerCase() as PieceType,
       };
-
       builder.addPiece(square++, piece);
     }
 
@@ -568,13 +557,11 @@ export default class Chess {
     builder.setEnPassant(fields[3] as Square);
     builder.setHalfMoves(fields[4]);
     builder.setFullMoves(fields[5]);
-
     return builder.build();
   }
 
   reset() {
     const chess = Chess.load();
-
     this._board = chess._board;
     this._turn = chess._turn;
     this._castling = chess._castling;
@@ -585,15 +572,12 @@ export default class Chess {
 
   getFEN() {
     let position = "";
-
     let emptySquares = 0;
 
     for (let i = 0; i < 64; i++) {
       if (i % 8 == 0) {
         if (emptySquares) position += `${emptySquares}`;
-
         position += "/";
-
         emptySquares = 0;
       }
 
@@ -610,7 +594,6 @@ export default class Chess {
         piece.color == COLOR.WHITE
           ? piece.type.toUpperCase()
           : piece.type.toLowerCase();
-
       emptySquares = 0;
     }
 
@@ -622,7 +605,6 @@ export default class Chess {
     if (this._castling.w & MOVE_FLAGS.Q_CASTLE) castling += "Q";
     if (this._castling.b & MOVE_FLAGS.K_CASTLE) castling += "k";
     if (this._castling.b & MOVE_FLAGS.Q_CASTLE) castling += "q";
-
     if (castling == "") castling = "-";
 
     return [
@@ -637,7 +619,6 @@ export default class Chess {
 
   getPiece(square: Square | number) {
     square = squareIndex(square);
-
     return square < 0 || square > 63 ? null : this._board[square];
   }
 
@@ -658,12 +639,10 @@ export default class Chess {
         piece.color == COLOR.BLACK
           ? piece.type.toLowerCase()
           : piece.type.toUpperCase();
-
       str += ` ${pieceLetter}`;
     }
 
     str += "\n  A B C D E F G H";
-
     return str;
   }
 
@@ -675,16 +654,13 @@ export default class Chess {
     const piece = this.getPiece(square);
     const moves =
       piece == null ? [] : generatePieceMoves(this._board, square, piece);
-
     return { piece, moves };
   }
 
   // TODO: consider checks
   private _processMoves(piece: Piece | null, moves: Move[]) {
     if (piece?.type != PIECE.KING) return moves;
-
     const other_color = COLOR_MASKS[swapColor(piece.color)];
-
     return moves.filter(
       ({ to }) => (this._attacks[squareIndex(to)] & other_color) == 0,
       this
@@ -693,11 +669,8 @@ export default class Chess {
 
   getMovesForSquare(square: Square | number): Move[] {
     square = squareIndex(square);
-
     if (square < 0 || square > 63) return [];
-
     const { piece, moves } = this._getMovesForSquare(square);
-
     return this._processMoves(piece, moves);
   }
 
@@ -705,7 +678,6 @@ export default class Chess {
 
   isSquareAttacked(square: Square | number, color: Color) {
     square = squareIndex(square);
-
     return square < 0 || square > 63
       ? false
       : (this._attacks[square] & COLOR_MASKS[color]) != 0;
@@ -736,47 +708,30 @@ export default class Chess {
 
     this._board.forEach((piece) => {
       if (piece == null) return;
-
       remainingPieces[piece.type][piece.color]++;
     });
 
     if (
       remainingPieces[PIECE.PAWN][COLOR.WHITE] > 0 ||
-      remainingPieces[PIECE.PAWN][COLOR.BLACK] > 0
-    )
-      return false;
-
-    if (
+      remainingPieces[PIECE.PAWN][COLOR.BLACK] > 0 ||
       remainingPieces[PIECE.QUEEN][COLOR.WHITE] > 0 ||
-      remainingPieces[PIECE.QUEEN][COLOR.BLACK] > 0
-    )
-      return false;
-
-    if (
+      remainingPieces[PIECE.QUEEN][COLOR.BLACK] > 0 ||
       remainingPieces[PIECE.ROOK][COLOR.WHITE] > 0 ||
-      remainingPieces[PIECE.ROOK][COLOR.BLACK] > 0
-    )
-      return false;
-
-    if (
+      remainingPieces[PIECE.ROOK][COLOR.BLACK] > 0 ||
       remainingPieces[PIECE.BISHOP][COLOR.WHITE] == 2 ||
-      remainingPieces[PIECE.BISHOP][COLOR.BLACK] == 2
-    )
-      return false;
-
-    if (
+      remainingPieces[PIECE.BISHOP][COLOR.BLACK] == 2 ||
       remainingPieces[PIECE.BISHOP][COLOR.WHITE] +
         remainingPieces[PIECE.BISHOP][COLOR.BLACK] +
         remainingPieces[PIECE.KNIGHT][COLOR.WHITE] +
         remainingPieces[PIECE.KNIGHT][COLOR.BLACK] >=
-      3
+        3
     )
       return false;
 
     return true;
   }
 
-  // TODO
+  // TODO: implement
   isThreefoldRepetition() {
     return false;
   }
@@ -794,17 +749,17 @@ export default class Chess {
     return this.isCheckMate() || this.isDraw();
   }
 
-  // TODO
+  // TODO: implement
   private _addToHistory() {}
 
-  // TODO
+  // TODO: implement
   // and a way to track how many moves were undo'ed
   undo() {}
 
-  // TODO
+  // TODO: implement
   turn() {}
 
-  // TODO
+  // TODO: implement
   history() {}
 
   static Builder = class {
@@ -826,9 +781,7 @@ export default class Chess {
 
     addPiece(square: Square | number, piece: Piece) {
       if (typeof square != "number") square = squareIndex(square);
-
       if (square < 0 || square > 63) return;
-
       this._board[square] = piece;
     }
 
