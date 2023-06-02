@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import Chess, { MOVE_FLAGS, Move, Square } from "../chess/engine";
+import Chess, { InternalMove, MOVE_FLAGS, Square } from "../chess/engine";
 
 type ExpectedMoves = Record<
   string,
   {
     square: Square;
-    moves: Move[];
+    moves: InternalMove[];
   }[]
 >;
 
@@ -18,7 +18,6 @@ function runTest(fen: string, expectedMoves: ExpectedMoves) {
         const moves = chess.getMovesForSquare(square);
 
         expect(moves).toHaveLength(expectedMoves.length);
-
         moves.forEach(move => expect(expectedMoves).toContainEqual(move));
         expectedMoves.forEach(expectedMove =>
           expect(moves).toContainEqual(expectedMove)
@@ -488,4 +487,43 @@ describe("queen and king moves", () => {
   };
 
   runTests("7Q/2k5/8/8/8/6K1/q7/8 % - - 0 1", expectedMovesW, expectedMovesB);
+});
+
+describe("en passant", () => {
+  const expectedMoves: ExpectedMoves = {
+    white_sees_ep_square: [
+      {
+        square: "d5",
+        moves: [
+          { from: "d5", to: "d6", flag: MOVE_FLAGS.NORMAL },
+          { from: "d5", to: "e6", flag: MOVE_FLAGS.EN_PASSANT },
+        ],
+      },
+    ],
+  };
+
+  runTest(
+    "rnbqkbnr/pp1p1ppp/8/2pPp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
+    expectedMoves
+  );
+});
+
+describe("castling", () => {
+  const expectedMoves: ExpectedMoves = {
+    white_castling: [
+      {
+        square: "e1",
+        moves: [
+          { from: "e1", to: "g1", flag: MOVE_FLAGS.K_CASTLE },
+          { from: "e1", to: "d2", flag: MOVE_FLAGS.NORMAL },
+          { from: "e1", to: "f1", flag: MOVE_FLAGS.NORMAL },
+        ],
+      },
+    ],
+  };
+
+  runTest(
+    "rn1qkbnr/p4ppp/B1p5/1p1pp3/3PPBb1/2NQ3N/PPP2PPP/R3K2R w KQkq - 0 8",
+    expectedMoves
+  );
 });

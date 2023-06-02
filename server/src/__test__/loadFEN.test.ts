@@ -42,7 +42,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("h7", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load();
 
     for (let i = 0; i < 64; i++)
@@ -89,7 +88,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("h7", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load(
       "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
     );
@@ -138,7 +136,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("h7", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load(
       "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
     );
@@ -187,7 +184,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("h7", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load(
       "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 1 2"
     );
@@ -224,7 +220,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("h7", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load(
       "r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 19"
     );
@@ -253,7 +248,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("h5", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 b - - 3 43");
 
     for (let i = 0; i < 64; i++)
@@ -273,7 +267,6 @@ describe("valid FEN strings", () => {
     builder.addPiece("b2", { color: COLOR.BLACK, type: PIECE.PAWN });
 
     const expected = builder.build();
-
     const chess = Chess.load("8/8/2k2Q2/8/5P2/8/1p6/6K1 b - - 1 48");
 
     for (let i = 0; i < 64; i++)

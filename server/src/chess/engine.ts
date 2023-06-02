@@ -48,7 +48,7 @@ export const SQUARES = Object.freeze([
   'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
 ] as const);
 
-const EN_PASSANT_SQUARES = {
+const EN_PASSANT_ATTACK_SQUARES = {
   w: ["a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6"],
   b: ["a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3"],
 };
@@ -70,13 +70,12 @@ export type MoveFlag = (typeof MOVE_FLAGS)[keyof typeof MOVE_FLAGS];
 export type Move = {
   from: Square;
   to: Square;
-  flag: MoveFlag;
   promotion?: PiecePromotionType;
 };
 
-// type InternalMove = Move & {
-//   beforeFEN: string;
-// };
+export type InternalMove = Move & {
+  flag: MoveFlag;
+};
 
 export const PIECE_MASKS: Record<PieceType, number> = Object.freeze({
   p: 0b000001,
@@ -229,7 +228,10 @@ export function validateFEN(fen: string): void {
   };
 
   const validateEnPassant = (enPassant: string, turn: Color) => {
-    if (enPassant != "-" && !EN_PASSANT_SQUARES[turn].includes(enPassant))
+    if (
+      enPassant != "-" &&
+      !EN_PASSANT_ATTACK_SQUARES[turn].includes(enPassant)
+    )
       throw new Error("Invalid FEN - invalid en-passant square");
   };
 
@@ -326,13 +328,14 @@ const PIECE_MOVE_INFO = Object.freeze({
 });
 
 function generatePawnMoves(
-  board: Readonly<Board>,
   position: number,
-  color: Color
-): Move[] {
+  color: Color,
+  board: Readonly<Board>,
+  enPassantSquare: Square
+): InternalMove[] {
   if (board[position] == null) return [];
 
-  const moves: Move[] = [];
+  const moves: InternalMove[] = [];
 
   const generatePromotionMoves = (from: number, to: number) => {
     const fromAlgebraic = algebraic(from);
@@ -351,7 +354,7 @@ function generatePawnMoves(
   const offset = PAWN_MOVE_INFO[color].offset;
   const nextPosition = position + offset;
 
-  if (board[nextPosition] == null) {
+  if (board[nextPosition] == null)
     if (rank(nextPosition) == PAWN_MOVE_INFO[color].promotion)
       generatePromotionMoves(position, nextPosition);
     else {
@@ -372,18 +375,23 @@ function generatePawnMoves(
           });
       }
     }
-  }
+
+  const enPassant = squareIndex(enPassantSquare);
 
   PAWN_ATTACKS.forEach(({ offset, excludedFile }) => {
     const attackPosition = nextPosition + offset;
-
     const piece = board[attackPosition];
 
-    if (file(position) != excludedFile && piece != null && piece.color != color)
+    const isPiece = piece != null && piece.color != color;
+    const isEnPassant =
+      attackPosition == enPassant &&
+      EN_PASSANT_ATTACK_SQUARES[color].includes(enPassantSquare);
+
+    if (file(position) != excludedFile && (isPiece || isEnPassant))
       moves.push({
         from: algebraic(position),
         to: algebraic(attackPosition),
-        flag: MOVE_FLAGS.CAPTURE,
+        flag: isPiece ? MOVE_FLAGS.CAPTURE : MOVE_FLAGS.EN_PASSANT,
       });
   });
 
@@ -391,16 +399,17 @@ function generatePawnMoves(
 }
 
 export function generatePieceMoves(
-  board: Readonly<Board>,
   position: number,
-  piece: Piece
-): Move[] {
+  piece: Piece,
+  board: Readonly<Board>,
+  enPassantSquare: Square
+): InternalMove[] {
   if (piece.type == PIECE.PAWN)
-    return generatePawnMoves(board, position, piece.color);
+    return generatePawnMoves(position, piece.color, board, enPassantSquare);
 
   const type = piece.type; // hacked the type system
   const generateOnce = () => {
-    const moves: Move[] = [];
+    const moves: InternalMove[] = [];
 
     PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
       if (excludedFiles.includes(file(position))) return;
@@ -429,7 +438,7 @@ export function generatePieceMoves(
   };
 
   const generateMultiple = () => {
-    const moves: Move[] = [];
+    const moves: InternalMove[] = [];
 
     PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
       if (excludedFiles.includes(file(position))) return;
@@ -490,10 +499,10 @@ export default class Chess {
   private _enPassant;
   private _halfMoves;
   private _fullMoves;
+  private _kings;
 
-  private _moves: Move[] = [];
+  private _moves: InternalMove[] = [];
   private _attacks: number[] = [];
-  private _kings: Record<Color, number> = { w: 0, b: 0 };
 
   private constructor(
     board: Board,
@@ -501,7 +510,8 @@ export default class Chess {
     castling: Record<Color, number>,
     enPassant: Square,
     halfMoves: number,
-    fullMoves: number
+    fullMoves: number,
+    kings: Record<Color, number>
   ) {
     this._board = board;
     this._turn = turn;
@@ -509,23 +519,74 @@ export default class Chess {
     this._enPassant = enPassant;
     this._halfMoves = halfMoves;
     this._fullMoves = fullMoves;
+    this._kings = kings;
     this._computeMoves();
   }
 
   private _computeMoves() {
     this._attacks = new Array(64).fill(0);
 
+    const currentMoves: {
+      piece: Piece;
+      moves: InternalMove[];
+    }[] = [];
+
     for (let i = 0; i < this._board.length; i++) {
       const { piece, moves } = this._getMovesForSquare(i);
-      this._moves = this._moves.concat(this._processMoves(piece, moves));
 
-      if (piece != null) {
-        const pieceColor = piece.color;
-        moves.forEach(
-          ({ to }) =>
-            (this._attacks[squareIndex(to)] |= COLOR_MASKS[pieceColor])
-        );
-      }
+      if (piece == null) continue;
+
+      if (this._turn == piece.color) currentMoves.push({ piece, moves });
+
+      moves.forEach(
+        ({ to }) => (this._attacks[squareIndex(to)] |= COLOR_MASKS[piece.color])
+      );
+    }
+
+    this._moves = currentMoves.flatMap(({ piece, moves }) =>
+      this._processMoves(piece, moves)
+    );
+
+    const canCastleThrough = (square: number, attackedBy: Color) => {
+      return (
+        this._board[square] == null &&
+        !this.isSquareAttacked(square, attackedBy)
+      );
+    };
+
+    for (const color of Object.values(COLOR)) {
+      const otherColor = swapColor(color);
+
+      const castling = this._castling[color];
+      const kingPosition = this._kings[color];
+      const queensKnightPosition = kingPosition - 3;
+      const queensBishopPosition = kingPosition - 2;
+      const queenPosition = kingPosition - 1;
+      const kingsBishopPosition = kingPosition + 1;
+      const kingsKnightPosition = kingPosition + 2;
+
+      if (
+        castling & MOVE_FLAGS.K_CASTLE &&
+        canCastleThrough(kingsBishopPosition, otherColor) &&
+        canCastleThrough(kingsKnightPosition, otherColor)
+      )
+        this._moves.push({
+          from: algebraic(kingPosition),
+          to: algebraic(kingsKnightPosition),
+          flag: MOVE_FLAGS.K_CASTLE,
+        });
+
+      if (
+        castling & MOVE_FLAGS.Q_CASTLE &&
+        canCastleThrough(queenPosition, otherColor) &&
+        canCastleThrough(queensBishopPosition, otherColor) &&
+        canCastleThrough(queensKnightPosition, otherColor)
+      )
+        this._moves.push({
+          from: algebraic(kingPosition),
+          to: algebraic(queensBishopPosition),
+          flag: MOVE_FLAGS.Q_CASTLE,
+        });
     }
   }
 
@@ -537,17 +598,17 @@ export default class Chess {
     const position = fields[0];
     let square = 0;
 
-    for (let i = 0; i < position.length; i++) {
-      if (position[i] == "/") continue;
+    for (const char of position) {
+      if (char == "/") continue;
 
-      if (isDigit(position[i])) {
-        square += parseInt(position[i]);
+      if (isDigit(char)) {
+        square += parseInt(char);
         continue;
       }
 
       const piece = {
-        color: position[i] < "a" ? COLOR.WHITE : COLOR.BLACK,
-        type: position[i].toLowerCase() as PieceType,
+        color: char < "a" ? COLOR.WHITE : COLOR.BLACK,
+        type: char.toLowerCase() as PieceType,
       };
       builder.addPiece(square++, piece);
     }
@@ -646,41 +707,116 @@ export default class Chess {
     return str;
   }
 
-  getMoves(): Move[] {
+  getMoves(): InternalMove[] {
     return this._moves;
   }
 
   private _getMovesForSquare(square: number) {
     const piece = this.getPiece(square);
     const moves =
-      piece == null ? [] : generatePieceMoves(this._board, square, piece);
+      piece == null
+        ? []
+        : generatePieceMoves(square, piece, this._board, this._enPassant);
     return { piece, moves };
   }
 
-  // TODO: consider checks
-  private _processMoves(piece: Piece | null, moves: Move[]) {
+  // TODO: uncomment correct implementation after 'makeMove' and 'undo' are done
+  private _processMoves(
+    piece: Piece | null,
+    moves: InternalMove[]
+  ): InternalMove[] {
     if (piece?.type != PIECE.KING) return moves;
-    const other_color = COLOR_MASKS[swapColor(piece.color)];
+    const otherColor = swapColor(piece.color);
     return moves.filter(
-      ({ to }) => (this._attacks[squareIndex(to)] & other_color) == 0,
+      ({ to }) => !this.isSquareAttacked(to, otherColor),
       this
     );
+    // return moves.fiter(
+    // move => {
+    // this.makeMove
+    // const check = this.isCheck
+    // this.undo
+    // return !check
+    // },
+    // this
+    // )
   }
 
-  getMovesForSquare(square: Square | number): Move[] {
-    square = squareIndex(square);
-    if (square < 0 || square > 63) return [];
-    const { piece, moves } = this._getMovesForSquare(square);
-    return this._processMoves(piece, moves);
+  getMovesForSquare(square: Square): InternalMove[] {
+    return this._moves.filter(({ from }) => from == square);
   }
 
-  makeMove() {}
+  makeMove(move: Move) {
+    const myColor = this._turn;
+    const theirColor = swapColor(this._turn);
+    let moveObj = null;
 
-  isSquareAttacked(square: Square | number, color: Color) {
+    for (const computedMove of this._moves) {
+      const found =
+        move.to == computedMove.to &&
+        move.from == computedMove.from &&
+        move.promotion == computedMove.promotion;
+
+      if (found) {
+        moveObj = computedMove;
+        break;
+      }
+    }
+
+    if (moveObj == null)
+      throw new Error(`Move ${JSON.stringify(move)} not found`);
+
+    this._board[squareIndex(moveObj.to)] =
+      this._board[squareIndex(moveObj.from)];
+    this._board[squareIndex(moveObj.from)] = null;
+
+    switch (moveObj.flag) {
+      case MOVE_FLAGS.PAWN_JUMP:
+        this._enPassant = algebraic(
+          squareIndex(moveObj.to) - PAWN_MOVE_INFO[myColor].offset
+        );
+        break;
+
+      case MOVE_FLAGS.EN_PASSANT:
+        this._board[
+          squareIndex(this._enPassant + PAWN_MOVE_INFO[theirColor].offset)
+        ] = null;
+        this._enPassant = "-";
+        break;
+
+      case MOVE_FLAGS.PROMOTION:
+        this._board[squareIndex(moveObj.to)] = {
+          type: moveObj.promotion as PieceType,
+          color: myColor,
+        };
+        break;
+
+      case MOVE_FLAGS.K_CASTLE:
+        const kingsKnight = squareIndex(moveObj.to);
+        const kingsRook = kingsKnight + 1;
+        const kingsBishop = kingsKnight - 1;
+        this._board[kingsBishop] = this._board[kingsRook];
+        this._board[kingsRook] = null;
+        break;
+
+      case MOVE_FLAGS.Q_CASTLE:
+        const queensBishop = squareIndex(moveObj.to);
+        const queen = queensBishop + 1;
+        const queensRook = queensBishop - 2;
+        this._board[queen] = this._board[queensRook];
+        this._board[queensRook] = null;
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  isSquareAttacked(square: Square | number, attackedBy: Color) {
     square = squareIndex(square);
     return square < 0 || square > 63
       ? false
-      : (this._attacks[square] & COLOR_MASKS[color]) != 0;
+      : (this._attacks[square] & COLOR_MASKS[attackedBy]) != 0;
   }
 
   isCheck() {
@@ -753,36 +889,31 @@ export default class Chess {
   private _addToHistory() {}
 
   // TODO: implement
-  // and a way to track how many moves were undo'ed
+  // mabye store the history in a tree
   undo() {}
+  redo() {}
 
-  // TODO: implement
-  turn() {}
+  turn() {
+    return this._turn;
+  }
 
   // TODO: implement
   history() {}
 
   static Builder = class {
-    private _board: Board;
-    private _turn: Color;
-    private _castling: Record<Color, number>;
-    private _enPassant: Square;
-    private _halfMoves: number;
-    private _fullMoves: number;
-
-    constructor() {
-      this._board = new Array(64).fill(null);
-      this._turn = COLOR.WHITE;
-      this._castling = { w: 0, b: 0 };
-      this._enPassant = EMPTY_SQUARE;
-      this._halfMoves = 0;
-      this._fullMoves = 1;
-    }
+    private _board: Board = new Array(64).fill(null);
+    private _turn: Color = COLOR.WHITE;
+    private _castling: Record<Color, number> = { w: 0, b: 0 };
+    private _enPassant: Square = EMPTY_SQUARE;
+    private _halfMoves: number = 0;
+    private _fullMoves: number = 1;
+    private _kings: Record<Color, number> = { w: 0, b: 0 };
 
     addPiece(square: Square | number, piece: Piece) {
       if (typeof square != "number") square = squareIndex(square);
       if (square < 0 || square > 63) return;
       this._board[square] = piece;
+      if (piece.type == PIECE.KING) this._kings[piece.color] = square;
     }
 
     setTurn(turn: Color) {
@@ -798,7 +929,7 @@ export default class Chess {
     }
 
     setEnPassant(enPassant: Square) {
-      if (EN_PASSANT_SQUARES[this._turn].includes(enPassant))
+      if (EN_PASSANT_ATTACK_SQUARES[this._turn].includes(enPassant))
         this._enPassant = enPassant;
     }
 
@@ -817,7 +948,8 @@ export default class Chess {
         this._castling,
         this._enPassant,
         this._halfMoves,
-        this._fullMoves
+        this._fullMoves,
+        this._kings
       );
     }
   };
