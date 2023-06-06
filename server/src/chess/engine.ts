@@ -74,7 +74,7 @@ export type Move = {
 };
 
 export type InternalMove = Move & {
-  flag: MoveFlag;
+  flags: number;
 };
 
 export const PIECE_MASKS: Record<PieceType, number> = Object.freeze({
@@ -203,7 +203,7 @@ export function validateFEN(fen: string): void {
         if (!isPieceValid(symbol.toLowerCase()))
           throw new Error(
             "Invalid FEN - board position contains an invalid piece symbol: " +
-              symbol
+            symbol
           );
 
         numSquares++;
@@ -337,7 +337,7 @@ function generatePawnMoves(
 
   const moves: InternalMove[] = [];
 
-  const generatePromotionMoves = (from: number, to: number) => {
+  const generatePromotionMoves = (from: number, to: number, flag: MoveFlag) => {
     const fromAlgebraic = algebraic(from);
     const toAlgebraic = algebraic(to);
 
@@ -346,7 +346,7 @@ function generatePawnMoves(
         from: fromAlgebraic,
         to: toAlgebraic,
         promotion: piece,
-        flag: MOVE_FLAGS.PROMOTION,
+        flags: MOVE_FLAGS.PROMOTION | flag,
       })
     );
   };
@@ -356,12 +356,12 @@ function generatePawnMoves(
 
   if (board[nextPosition] == null)
     if (rank(nextPosition) == PAWN_MOVE_INFO[color].promotion)
-      generatePromotionMoves(position, nextPosition);
+      generatePromotionMoves(position, nextPosition, MOVE_FLAGS.NORMAL);
     else {
       moves.push({
         from: algebraic(position),
         to: algebraic(nextPosition),
-        flag: MOVE_FLAGS.NORMAL,
+        flags: MOVE_FLAGS.NORMAL,
       });
 
       if (rank(position) == PAWN_MOVE_INFO[color].jumpRank) {
@@ -371,7 +371,7 @@ function generatePawnMoves(
           moves.push({
             from: algebraic(position),
             to: algebraic(jumpPosition),
-            flag: MOVE_FLAGS.PAWN_JUMP,
+            flags: MOVE_FLAGS.PAWN_JUMP,
           });
       }
     }
@@ -388,11 +388,14 @@ function generatePawnMoves(
       EN_PASSANT_ATTACK_SQUARES[color].includes(enPassantSquare);
 
     if (file(position) != excludedFile && (isPiece || isEnPassant))
-      moves.push({
-        from: algebraic(position),
-        to: algebraic(attackPosition),
-        flag: isPiece ? MOVE_FLAGS.CAPTURE : MOVE_FLAGS.EN_PASSANT,
-      });
+      if (rank(nextPosition) == PAWN_MOVE_INFO[color].promotion)
+        generatePromotionMoves(position, attackPosition, MOVE_FLAGS.CAPTURE);
+      else
+        moves.push({
+          from: algebraic(position),
+          to: algebraic(attackPosition),
+          flags: isPiece ? MOVE_FLAGS.CAPTURE : MOVE_FLAGS.EN_PASSANT,
+        });
   });
 
   return moves;
@@ -424,13 +427,13 @@ export function generatePieceMoves(
         moves.push({
           from: algebraic(position),
           to: algebraic(nextPosition),
-          flag: MOVE_FLAGS.NORMAL,
+          flags: MOVE_FLAGS.NORMAL,
         });
       else if (attackedPiece.color != piece.color)
         moves.push({
           from: algebraic(position),
           to: algebraic(nextPosition),
-          flag: MOVE_FLAGS.CAPTURE,
+          flags: MOVE_FLAGS.CAPTURE,
         });
     });
 
@@ -452,13 +455,11 @@ export function generatePieceMoves(
           moves.push({
             from: algebraic(position),
             to: algebraic(nextPosition),
-            flag: MOVE_FLAGS.NORMAL,
+            flags: MOVE_FLAGS.NORMAL,
           });
 
           if (excludedFiles.includes(file(nextPosition))) break;
-
           nextPosition += offset;
-
           continue;
         }
 
@@ -466,7 +467,7 @@ export function generatePieceMoves(
           moves.push({
             from: algebraic(position),
             to: algebraic(nextPosition),
-            flag: MOVE_FLAGS.CAPTURE,
+            flags: MOVE_FLAGS.CAPTURE,
           });
 
         break;
@@ -573,7 +574,7 @@ export default class Chess {
         this._moves.push({
           from: algebraic(kingPosition),
           to: algebraic(kingsKnightPosition),
-          flag: MOVE_FLAGS.K_CASTLE,
+          flags: MOVE_FLAGS.K_CASTLE,
         });
 
       if (
@@ -585,7 +586,7 @@ export default class Chess {
         this._moves.push({
           from: algebraic(kingPosition),
           to: algebraic(queensBishopPosition),
-          flag: MOVE_FLAGS.Q_CASTLE,
+          flags: MOVE_FLAGS.Q_CASTLE,
         });
     }
   }
@@ -746,7 +747,7 @@ export default class Chess {
     return this._moves.filter(({ from }) => from == square);
   }
 
-  makeMove(move: Move) {
+  makeMove(move: Move | InternalMove) {
     const myColor = this._turn;
     const theirColor = swapColor(this._turn);
     let moveObj = null;
@@ -765,30 +766,29 @@ export default class Chess {
 
     if (moveObj == null)
       throw new Error(`Move ${JSON.stringify(move)} not found`);
-
+    // debugger;
     this._board[squareIndex(moveObj.to)] =
-      this._board[squareIndex(moveObj.from)];
+      moveObj.flags & MOVE_FLAGS.PROMOTION
+        ? {
+          type: moveObj.promotion as PieceType,
+          color: myColor,
+        }
+        : this._board[squareIndex(moveObj.from)];
     this._board[squareIndex(moveObj.from)] = null;
+    let keepEpSquare = false;
 
-    switch (moveObj.flag) {
+    switch (moveObj.flags) {
       case MOVE_FLAGS.PAWN_JUMP:
         this._enPassant = algebraic(
           squareIndex(moveObj.to) - PAWN_MOVE_INFO[myColor].offset
         );
+        keepEpSquare = true;
         break;
 
       case MOVE_FLAGS.EN_PASSANT:
         this._board[
-          squareIndex(this._enPassant + PAWN_MOVE_INFO[theirColor].offset)
+          squareIndex(this._enPassant) + PAWN_MOVE_INFO[theirColor].offset
         ] = null;
-        this._enPassant = "-";
-        break;
-
-      case MOVE_FLAGS.PROMOTION:
-        this._board[squareIndex(moveObj.to)] = {
-          type: moveObj.promotion as PieceType,
-          color: myColor,
-        };
         break;
 
       case MOVE_FLAGS.K_CASTLE:
@@ -810,6 +810,12 @@ export default class Chess {
       default:
         break;
     }
+    if (!keepEpSquare) this._enPassant = EMPTY_SQUARE;
+
+    // const piece = this.getPiece(move.to)?.type;
+
+    this._turn = theirColor;
+    this._computeMoves();
   }
 
   isSquareAttacked(square: Square | number, attackedBy: Color) {
@@ -857,10 +863,10 @@ export default class Chess {
       remainingPieces[PIECE.BISHOP][COLOR.WHITE] == 2 ||
       remainingPieces[PIECE.BISHOP][COLOR.BLACK] == 2 ||
       remainingPieces[PIECE.BISHOP][COLOR.WHITE] +
-        remainingPieces[PIECE.BISHOP][COLOR.BLACK] +
-        remainingPieces[PIECE.KNIGHT][COLOR.WHITE] +
-        remainingPieces[PIECE.KNIGHT][COLOR.BLACK] >=
-        3
+      remainingPieces[PIECE.BISHOP][COLOR.BLACK] +
+      remainingPieces[PIECE.KNIGHT][COLOR.WHITE] +
+      remainingPieces[PIECE.KNIGHT][COLOR.BLACK] >=
+      3
     )
       return false;
 
@@ -886,19 +892,19 @@ export default class Chess {
   }
 
   // TODO: implement
-  private _addToHistory() {}
+  private _addToHistory() { }
 
   // TODO: implement
   // mabye store the history in a tree
-  undo() {}
-  redo() {}
+  undo() { }
+  redo() { }
 
   turn() {
     return this._turn;
   }
 
   // TODO: implement
-  history() {}
+  history() { }
 
   static Builder = class {
     private _board: Board = new Array(64).fill(null);
