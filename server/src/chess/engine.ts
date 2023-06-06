@@ -67,15 +67,13 @@ export const MOVE_FLAGS = Object.freeze({
 } as const);
 export type MoveFlag = (typeof MOVE_FLAGS)[keyof typeof MOVE_FLAGS];
 
-export type Move = {
+export type InternalMove = {
   from: Square;
   to: Square;
   promotion?: PiecePromotionType;
-};
-
-export type InternalMove = Move & {
   flags: number;
 };
+export type Move = Pick<InternalMove, "from" | "to" | "promotion">;
 
 export const PIECE_MASKS: Record<PieceType, number> = Object.freeze({
   p: 0b000001,
@@ -504,6 +502,7 @@ export default class Chess {
 
   private _moves: InternalMove[] = [];
   private _attacks: number[] = [];
+  private _history: string[] = [];
 
   private constructor(
     board: Board,
@@ -536,7 +535,6 @@ export default class Chess {
       const { piece, moves } = this._getMovesForSquare(i);
 
       if (piece == null) continue;
-
       if (this._turn == piece.color) currentMoves.push({ piece, moves });
 
       moves.forEach(
@@ -556,6 +554,8 @@ export default class Chess {
     };
 
     for (const color of Object.values(COLOR)) {
+      if (color != this._turn) continue;
+
       const otherColor = swapColor(color);
 
       const castling = this._castling[color];
@@ -766,7 +766,9 @@ export default class Chess {
 
     if (moveObj == null)
       throw new Error(`Move ${JSON.stringify(move)} not found`);
-    // debugger;
+
+    this._history.push(this.getFEN());
+
     this._board[squareIndex(moveObj.to)] =
       moveObj.flags & MOVE_FLAGS.PROMOTION
         ? {
@@ -812,10 +814,83 @@ export default class Chess {
     }
     if (!keepEpSquare) this._enPassant = EMPTY_SQUARE;
 
-    // const piece = this.getPiece(move.to)?.type;
+    const piece = this.getPiece(move.to)?.type as PieceType;
+
+    if (piece == PIECE.KING) this._kings[myColor] = squareIndex(moveObj.to);
+
+    if (
+      piece == PIECE.PAWN ||
+      moveObj.flags & (MOVE_FLAGS.CAPTURE | MOVE_FLAGS.EN_PASSANT)
+    )
+      this._halfMoves = 0;
+    else this._halfMoves++;
+
+    if (myColor == COLOR.BLACK) this._fullMoves++;
 
     this._turn = theirColor;
-    this._computeMoves();
+    this._updateCastling();
+
+    if (this.isGameOver()) this._moves = [];
+    else this._computeMoves();
+  }
+
+  private _updateCastling() {
+    const forWhite = () => {
+      const castling = this._castling[COLOR.WHITE];
+
+      if (castling == 0) return;
+
+      const whiteKing = this.getPiece("e1");
+
+      if (whiteKing?.type != PIECE.KING && whiteKing?.color != COLOR.WHITE) {
+        this._castling[COLOR.WHITE] = 0;
+        return;
+      }
+
+      if (castling & MOVE_FLAGS.K_CASTLE) {
+        const rook = this.getPiece("h1");
+
+        if (rook?.type != PIECE.ROOK && rook?.color != COLOR.WHITE)
+          this._castling[COLOR.WHITE] ^= MOVE_FLAGS.K_CASTLE;
+      }
+
+      if (castling & MOVE_FLAGS.Q_CASTLE) {
+        const rook = this.getPiece("a1");
+
+        if (rook?.type != PIECE.ROOK && rook?.color != COLOR.WHITE)
+          this._castling[COLOR.WHITE] ^= MOVE_FLAGS.Q_CASTLE;
+      }
+    };
+
+    const forBlack = () => {
+      const castling = this._castling[COLOR.BLACK];
+
+      if (castling == 0) return;
+
+      const blackKing = this.getPiece("e8");
+
+      if (blackKing?.type != PIECE.KING && blackKing?.color != COLOR.BLACK) {
+        this._castling[COLOR.BLACK] = 0;
+        return;
+      }
+
+      if (castling & MOVE_FLAGS.K_CASTLE) {
+        const rook = this.getPiece("h8");
+
+        if (rook?.type != PIECE.ROOK && rook?.color != COLOR.BLACK)
+          this._castling[COLOR.BLACK] ^= MOVE_FLAGS.K_CASTLE;
+      }
+
+      if (castling & MOVE_FLAGS.Q_CASTLE) {
+        const rook = this.getPiece("a8");
+
+        if (rook?.type != PIECE.ROOK && rook?.color != COLOR.BLACK)
+          this._castling[COLOR.BLACK] ^= MOVE_FLAGS.Q_CASTLE;
+      }
+    };
+
+    forWhite();
+    forBlack();
   }
 
   isSquareAttacked(square: Square | number, attackedBy: Color) {
@@ -892,12 +967,21 @@ export default class Chess {
   }
 
   // TODO: implement
-  private _addToHistory() { }
-
-  // TODO: implement
   // mabye store the history in a tree
-  undo() { }
-  redo() { }
+  undo() {
+    const lastFen = this._history.pop();
+    if (lastFen == undefined) return;
+
+    const chess = Chess.load();
+    this._board = chess._board;
+    this._turn = chess._turn;
+    this._castling = chess._castling;
+    this._enPassant = chess._enPassant;
+    this._halfMoves = chess._halfMoves;
+    this._fullMoves = chess._fullMoves;
+    this._kings = chess._kings;
+    this._computeMoves();
+  }
 
   turn() {
     return this._turn;

@@ -41,19 +41,26 @@ function getKeyByValue(object: Record<string, any>, value: any) {
 
 export default function App() {
   const [chess] = useState(Chess.load());
+  const [_, setUpdate] = useState(false);
 
   const sendMove = (move: Move) => {
     chess.makeMove(move);
-    console.clear();
-    chess.getMoves().forEach((move) =>
-      console.log({
-        ...move,
-        flags: getKeyByValue(MOVE_FLAGS, move.flags) ?? move.flags,
-      })
-    );
+    console.log(chess.getFEN());
   };
 
-  return <ChessBoard chess={chess} sendMove={sendMove} />;
+  return (
+    <>
+      <ChessBoard chess={chess} sendMove={sendMove} />
+      <button
+        onClick={() => {
+          chess.undo();
+          setUpdate((prev) => !prev);
+        }}
+      >
+        undo
+      </button>
+    </>
+  );
 }
 const ChessBoard: React.FC<{
   chess: Chess;
