@@ -503,6 +503,7 @@ export default class Chess {
   private _moves: InternalMove[] = [];
   private _attacks: number[] = [];
   private _history: string[] = [];
+  private _enableProcessMoves = true;
 
   private constructor(
     board: Board,
@@ -511,7 +512,8 @@ export default class Chess {
     enPassant: Square,
     halfMoves: number,
     fullMoves: number,
-    kings: Record<Color, number>
+    kings: Record<Color, number>,
+    enableProcessMoves: boolean
   ) {
     this._board = board;
     this._turn = turn;
@@ -520,31 +522,26 @@ export default class Chess {
     this._halfMoves = halfMoves;
     this._fullMoves = fullMoves;
     this._kings = kings;
+    this._enableProcessMoves = enableProcessMoves;
     this._computeMoves();
   }
 
   private _computeMoves() {
     this._attacks = new Array(64).fill(0);
-
-    const currentMoves: {
-      piece: Piece;
-      moves: InternalMove[];
-    }[] = [];
+    this._moves = [];
 
     for (let i = 0; i < this._board.length; i++) {
       const { piece, moves } = this._getMovesForSquare(i);
 
       if (piece == null) continue;
-      if (this._turn == piece.color) currentMoves.push({ piece, moves });
+      if (this._turn == piece.color) this._moves = this._moves.concat(moves);
 
       moves.forEach(
         ({ to }) => (this._attacks[squareIndex(to)] |= COLOR_MASKS[piece.color])
       );
     }
 
-    this._moves = currentMoves.flatMap(({ piece, moves }) =>
-      this._processMoves(piece, moves)
-    );
+    if (this._enableProcessMoves) this._processMoves();
 
     const canCastleThrough = (square: number, attackedBy: Color) => {
       return (
@@ -591,7 +588,7 @@ export default class Chess {
     }
   }
 
-  static load(fen = DEFAULT_POSITION) {
+  static load(fen = DEFAULT_POSITION, enableProcessMoves = true) {
     validateFEN(fen);
 
     const builder = new Chess.Builder();
@@ -619,6 +616,9 @@ export default class Chess {
     builder.setEnPassant(fields[3] as Square);
     builder.setHalfMoves(fields[4]);
     builder.setFullMoves(fields[5]);
+
+    if (enableProcessMoves == false) builder.disableComputeMoves();
+
     return builder.build();
   }
 
@@ -721,35 +721,91 @@ export default class Chess {
     return { piece, moves };
   }
 
-  // TODO: uncomment correct implementation after 'makeMove' and 'undo' are done
-  private _processMoves(
-    piece: Piece | null,
-    moves: InternalMove[]
-  ): InternalMove[] {
-    if (piece?.type != PIECE.KING) return moves;
-    const otherColor = swapColor(piece.color);
-    return moves.filter(
-      ({ to }) => !this.isSquareAttacked(to, otherColor),
-      this
-    );
-    // return moves.fiter(
-    // move => {
-    // this.makeMove
-    // const check = this.isCheck
-    // this.undo
-    // return !check
-    // },
-    // this
-    // )
+  private _processMoves() {
+    const currentFEN = this.getFEN();
+    this._moves = this._moves.filter((move) => {
+      const chess = Chess.load(currentFEN, false);
+      chess._makeMove(move);
+      return !chess._isKingAttacked(this._turn);
+    }, this);
   }
 
   getMovesForSquare(square: Square): InternalMove[] {
     return this._moves.filter(({ from }) => from == square);
   }
 
-  makeMove(move: Move | InternalMove) {
+  private _makeMove(move: InternalMove) {
     const myColor = this._turn;
     const theirColor = swapColor(this._turn);
+
+    this._history.push(this.getFEN());
+
+    this._board[squareIndex(move.to)] =
+      move.flags & MOVE_FLAGS.PROMOTION
+        ? {
+          type: move.promotion as PieceType,
+          color: myColor,
+        }
+        : this._board[squareIndex(move.from)];
+    this._board[squareIndex(move.from)] = null;
+    let keepEpSquare = false;
+
+    switch (move.flags) {
+      case MOVE_FLAGS.PAWN_JUMP:
+        this._enPassant = algebraic(
+          squareIndex(move.to) - PAWN_MOVE_INFO[myColor].offset
+        );
+        keepEpSquare = true;
+        break;
+
+      case MOVE_FLAGS.EN_PASSANT:
+        this._board[
+          squareIndex(this._enPassant) + PAWN_MOVE_INFO[theirColor].offset
+        ] = null;
+        break;
+
+      case MOVE_FLAGS.K_CASTLE:
+        const kingsKnight = squareIndex(move.to);
+        const kingsRook = kingsKnight + 1;
+        const kingsBishop = kingsKnight - 1;
+        this._board[kingsBishop] = this._board[kingsRook];
+        this._board[kingsRook] = null;
+        break;
+
+      case MOVE_FLAGS.Q_CASTLE:
+        const queensBishop = squareIndex(move.to);
+        const queen = queensBishop + 1;
+        const queensRook = queensBishop - 2;
+        this._board[queen] = this._board[queensRook];
+        this._board[queensRook] = null;
+        break;
+
+      default:
+        break;
+    }
+    if (!keepEpSquare) this._enPassant = EMPTY_SQUARE;
+
+    const piece = this.getPiece(move.to)?.type as PieceType;
+
+    if (piece == PIECE.KING) this._kings[myColor] = squareIndex(move.to);
+
+    if (
+      piece == PIECE.PAWN ||
+      move.flags & (MOVE_FLAGS.CAPTURE | MOVE_FLAGS.EN_PASSANT)
+    )
+      this._halfMoves = 0;
+    else this._halfMoves++;
+
+    if (myColor == COLOR.BLACK) this._fullMoves++;
+
+    this._turn = theirColor;
+    this._updateCastling();
+
+    if (this.isGameOver()) this._moves = [];
+    else this._computeMoves();
+  }
+
+  makeMove(move: Move) {
     let moveObj = null;
 
     for (const computedMove of this._moves) {
@@ -767,71 +823,7 @@ export default class Chess {
     if (moveObj == null)
       throw new Error(`Move ${JSON.stringify(move)} not found`);
 
-    this._history.push(this.getFEN());
-
-    this._board[squareIndex(moveObj.to)] =
-      moveObj.flags & MOVE_FLAGS.PROMOTION
-        ? {
-          type: moveObj.promotion as PieceType,
-          color: myColor,
-        }
-        : this._board[squareIndex(moveObj.from)];
-    this._board[squareIndex(moveObj.from)] = null;
-    let keepEpSquare = false;
-
-    switch (moveObj.flags) {
-      case MOVE_FLAGS.PAWN_JUMP:
-        this._enPassant = algebraic(
-          squareIndex(moveObj.to) - PAWN_MOVE_INFO[myColor].offset
-        );
-        keepEpSquare = true;
-        break;
-
-      case MOVE_FLAGS.EN_PASSANT:
-        this._board[
-          squareIndex(this._enPassant) + PAWN_MOVE_INFO[theirColor].offset
-        ] = null;
-        break;
-
-      case MOVE_FLAGS.K_CASTLE:
-        const kingsKnight = squareIndex(moveObj.to);
-        const kingsRook = kingsKnight + 1;
-        const kingsBishop = kingsKnight - 1;
-        this._board[kingsBishop] = this._board[kingsRook];
-        this._board[kingsRook] = null;
-        break;
-
-      case MOVE_FLAGS.Q_CASTLE:
-        const queensBishop = squareIndex(moveObj.to);
-        const queen = queensBishop + 1;
-        const queensRook = queensBishop - 2;
-        this._board[queen] = this._board[queensRook];
-        this._board[queensRook] = null;
-        break;
-
-      default:
-        break;
-    }
-    if (!keepEpSquare) this._enPassant = EMPTY_SQUARE;
-
-    const piece = this.getPiece(move.to)?.type as PieceType;
-
-    if (piece == PIECE.KING) this._kings[myColor] = squareIndex(moveObj.to);
-
-    if (
-      piece == PIECE.PAWN ||
-      moveObj.flags & (MOVE_FLAGS.CAPTURE | MOVE_FLAGS.EN_PASSANT)
-    )
-      this._halfMoves = 0;
-    else this._halfMoves++;
-
-    if (myColor == COLOR.BLACK) this._fullMoves++;
-
-    this._turn = theirColor;
-    this._updateCastling();
-
-    if (this.isGameOver()) this._moves = [];
-    else this._computeMoves();
+    this._makeMove(moveObj);
   }
 
   private _updateCastling() {
@@ -900,9 +892,13 @@ export default class Chess {
       : (this._attacks[square] & COLOR_MASKS[attackedBy]) != 0;
   }
 
+  _isKingAttacked(color: Color) {
+    const square = this._kings[color];
+    return this.isSquareAttacked(square, swapColor(color));
+  }
+
   isCheck() {
-    const square = this._kings[this._turn];
-    return this.isSquareAttacked(square, swapColor(this._turn));
+    return this._isKingAttacked(this._turn);
   }
 
   isCheckMate() {
@@ -966,13 +962,12 @@ export default class Chess {
     return this.isCheckMate() || this.isDraw();
   }
 
-  // TODO: implement
-  // mabye store the history in a tree
+  // TODO: store the history in a tree
   undo() {
     const lastFen = this._history.pop();
     if (lastFen == undefined) return;
 
-    const chess = Chess.load();
+    const chess = Chess.load(lastFen, this._enableProcessMoves);
     this._board = chess._board;
     this._turn = chess._turn;
     this._castling = chess._castling;
@@ -998,6 +993,7 @@ export default class Chess {
     private _halfMoves: number = 0;
     private _fullMoves: number = 1;
     private _kings: Record<Color, number> = { w: 0, b: 0 };
+    private _enableProcessMoves = true;
 
     addPiece(square: Square | number, piece: Piece) {
       if (typeof square != "number") square = squareIndex(square);
@@ -1031,6 +1027,10 @@ export default class Chess {
       this._fullMoves = parseInt(fullMoves);
     }
 
+    disableComputeMoves() {
+      this._enableProcessMoves = false;
+    }
+
     build() {
       return new Chess(
         this._board,
@@ -1039,7 +1039,8 @@ export default class Chess {
         this._enPassant,
         this._halfMoves,
         this._fullMoves,
-        this._kings
+        this._kings,
+        this._enableProcessMoves
       );
     }
   };

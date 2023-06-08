@@ -14,7 +14,6 @@ import bk from "./assets/pieces/bk.png";
 
 import Chess, {
   squareColor,
-  COLOR,
   Piece,
   PieceType,
   Color,
@@ -35,17 +34,12 @@ const PIECES: Record<Color, Record<PieceType, string>> = {
   b: { p: bp, n: bn, b: bb, r: br, q: bq, k: bk },
 };
 
-function getKeyByValue(object: Record<string, any>, value: any) {
-  return Object.keys(object).find((key) => object[key] === value);
-}
-
 export default function App() {
   const [chess] = useState(Chess.load());
   const [_, setUpdate] = useState(false);
 
   const sendMove = (move: Move) => {
     chess.makeMove(move);
-    console.log(chess.getFEN());
   };
 
   return (
@@ -73,12 +67,18 @@ const ChessBoard: React.FC<{
     piece: chess.getPiece(i),
     isAttacked: false,
     isPromotion: false,
+    isActive: false,
   }));
 
-  if (activeTile != -1)
-    chess
-      .getMovesForSquare(algebraic(activeTile))
-      .forEach(({ to }) => (tileProps[squareIndex(to)].isAttacked = true));
+  if (activeTile != -1) {
+    tileProps[activeTile].isActive = true;
+    chess.getMovesForSquare(algebraic(activeTile)).forEach(({ to, flags }) => {
+      const square = squareIndex(to);
+      tileProps[square].isAttacked = true;
+      tileProps[square].isPromotion =
+        flags & MOVE_FLAGS.PROMOTION ? true : false;
+    });
+  }
 
   const tiles = tileProps.map((props, i) => (
     <Tile key={i} {...props} blackPerspective={blackPerspective} />
@@ -89,11 +89,15 @@ const ChessBoard: React.FC<{
     // @ts-ignore
     const tile = parseInt(e.target.dataset.tile);
 
+    if (isNaN(tile)) return;
+
     if (activeTile != -1 && tileProps[tile].isAttacked) {
       sendMove({ from: algebraic(activeTile), to: algebraic(tile) });
       setActiveTile(-1);
       return;
     }
+
+    if (tileProps[tile].piece == null) return setActiveTile(-1);
 
     if (tile == activeTile) setActiveTile(-1);
     else setActiveTile(tile);
@@ -111,16 +115,30 @@ const ChessBoard: React.FC<{
   );
 };
 
+const TILE_COLORS = Object.freeze({
+  w: {
+    bg: "bg-white-tile",
+    text: "text-black-tile",
+    active: "bg-sky-400",
+  },
+  b: {
+    bg: "bg-black-tile",
+    text: "text-white-tile",
+    active: "bg-sky-700",
+  },
+} as const);
+
 const Tile: React.FC<{
   tileNumber: number;
   piece: Piece | null;
+  isActive: boolean;
   isAttacked: boolean;
   blackPerspective?: boolean;
-}> = ({ tileNumber, piece, isAttacked, blackPerspective }) => {
-  const [bgColor, textColor] =
-    squareColor(tileNumber) == COLOR.WHITE
-      ? ["bg-white-tile", "text-black-tile"]
-      : ["bg-black-tile", "text-white-tile"];
+}> = ({ tileNumber, piece, isActive, isAttacked, blackPerspective }) => {
+  const color = squareColor(tileNumber);
+
+  const { bg: bgColor, text: textColor } = TILE_COLORS[color];
+  const activeColor = isActive ? TILE_COLORS[color].active : "";
 
   const tileFile = file(tileNumber);
   const tileRank = rank(tileNumber);
@@ -131,7 +149,7 @@ const Tile: React.FC<{
 
   return (
     <div
-      className={`relative font-bold text-xl isolate group [&>*]:pointer-events-none ${bgColor}`}
+      className={`relative font-bold text-xl isolate group [&>*]:pointer-events-none ${bgColor} ${activeColor}`}
       data-tile={tileNumber}
     >
       {piece == null ? <></> : <img src={PIECES[piece.color][piece.type]} />}
