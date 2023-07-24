@@ -1,6 +1,6 @@
-import Chess, { Move } from "../../server/src/chess/engine";
+import Chess, { Move } from "../../../server/src/chess/engine";
 import { useState } from "react";
-import ChessBoard from "./components/Chessboard";
+import ChessBoard from "../components/Chessboard";
 
 const App = () => {
   const [chess] = useState(Chess.load());

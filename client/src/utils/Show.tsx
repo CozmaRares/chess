@@ -5,4 +5,5 @@ const Show: React.FC<{
 }> = ({ when, children, fallback }) => {
   return <> {when ? children : fallback}</>;
 };
+
 export default Show;
