@@ -25,8 +25,11 @@ import Chess, {
   squareIndex,
   Move,
   MOVE_FLAGS,
+  PIECE_PROMOTION,
+  COLOR,
+  PiecePromotionType,
 } from "../../server/src/chess/engine";
-import { MouseEventHandler, useState } from "react";
+import { MouseEventHandler, useLayoutEffect, useState } from "react";
 import Show from "./utils/Show";
 
 const PIECES: Record<Color, Record<PieceType, string>> = {
@@ -36,7 +39,7 @@ const PIECES: Record<Color, Record<PieceType, string>> = {
 
 export default function App() {
   const [chess] = useState(Chess.load());
-  const [_, setUpdate] = useState(false);
+  const [, setUpdate] = useState(false);
 
   const sendMove = (move: Move) => {
     chess.makeMove(move);
@@ -44,7 +47,7 @@ export default function App() {
 
   return (
     <>
-      <ChessBoard chess={chess} sendMove={sendMove} />
+      <ChessBoard key={chess.getFEN()} chess={chess} sendMove={sendMove} />
       <button
         onClick={() => {
           chess.undo();
@@ -56,12 +59,46 @@ export default function App() {
     </>
   );
 }
+
+// taken form https://github.com/uidotdev/usehooks
+function useWindowSize() {
+  const [size, setSize] = useState({
+    width: -1,
+    height: -1,
+  });
+
+  useLayoutEffect(() => {
+    const handleResize = () => {
+      setSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return size;
+}
+
 const ChessBoard: React.FC<{
   chess: Chess;
   sendMove: (move: Move) => void;
   blackPerspective?: boolean;
 }> = ({ chess, sendMove, blackPerspective }) => {
+  const { width, height } = useWindowSize();
   const [activeTile, setActiveTile] = useState<number>(-1);
+  const [promotionMove, setPromotionMove] = useState<
+    (Pick<Move, "from" | "to"> & { color: Color }) | null
+  >(null);
+
+  const gridSize = Math.min(width, height, 800);
+
   const tileProps = new Array(64).fill(null).map((_, i) => ({
     tileNumber: i,
     piece: chess.getPiece(i),
@@ -85,6 +122,8 @@ const ChessBoard: React.FC<{
   ));
 
   const handleClick: MouseEventHandler<HTMLDivElement> = (e) => {
+    if (promotionMove != null) return;
+
     // TODO: fix types
     // @ts-ignore
     const tile = parseInt(e.target.dataset.tile);
@@ -92,9 +131,16 @@ const ChessBoard: React.FC<{
     if (isNaN(tile)) return;
 
     if (activeTile != -1 && tileProps[tile].isAttacked) {
-      sendMove({ from: algebraic(activeTile), to: algebraic(tile) });
+      const moveObj = {
+        from: algebraic(activeTile),
+        to: algebraic(tile),
+        color: (chess.getPiece(activeTile) as Piece).color,
+      };
+
+      if (tileProps[tile].isPromotion) return setPromotionMove(moveObj);
+
+      sendMove(moveObj);
       setActiveTile(-1);
-      return;
     }
 
     if (tileProps[tile].piece == null) return setActiveTile(-1);
@@ -103,15 +149,44 @@ const ChessBoard: React.FC<{
     else setActiveTile(tile);
   };
 
+  const sendPromotionMove = (promotion: PiecePromotionType) => {
+    if (promotionMove == null) return;
+
+    const moveObj: Move = {
+      from: promotionMove.from,
+      to: promotionMove.to,
+      promotion,
+    };
+
+    sendMove(moveObj);
+    setPromotionMove(null);
+    setActiveTile(-1);
+  };
+
   return (
-    <>
+    <div className="flex flex-row h-fit items-center">
       <div
-        className="grid grid-rows-8 grid-cols-8 w-[800px] aspect-square border-8 border-black rounded-lg"
+        className="relative grid grid-rows-8 grid-cols-8 aspect-square border-8 border-black rounded-lg"
         onClick={handleClick}
+        style={{ width: `${gridSize}px` }}
       >
         {blackPerspective == true ? tiles.reverse() : tiles}
       </div>
-    </>
+      {promotionMove == null ? (
+        <></>
+      ) : (
+        <div className="w-fit flex flex-col bg-black rounded-r-2xl p-1">
+          {PIECE_PROMOTION.map((p) => (
+            <img
+              key={p}
+              src={PIECES[promotionMove.color][p]}
+              style={{ width: `${gridSize / 8}px`, aspectRatio: 1 }}
+              onClick={() => sendPromotionMove(p)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -149,7 +224,7 @@ const Tile: React.FC<{
 
   return (
     <div
-      className={`relative font-bold text-xl isolate group [&>*]:pointer-events-none ${bgColor} ${activeColor}`}
+      className={`relative aspect-square font-bold text-xl isolate group [&>*]:pointer-events-none ${bgColor} ${activeColor}`}
       data-tile={tileNumber}
     >
       {piece == null ? <></> : <img src={PIECES[piece.color][piece.type]} />}
