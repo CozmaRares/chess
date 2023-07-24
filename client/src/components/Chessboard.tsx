@@ -32,7 +32,6 @@ import { MouseEventHandler, useState } from "react";
 import Show from "../utils/Show";
 import useWindowSize from "../utils/useWindowSize";
 
-
 const PIECES: Record<Color, Record<PieceType, string>> = {
   w: { p: wp, n: wn, b: wb, r: wr, q: wq, k: wk },
   b: { p: bp, n: bn, b: bb, r: br, q: bq, k: bk },
@@ -40,8 +39,9 @@ const PIECES: Record<Color, Record<PieceType, string>> = {
 const ChessBoard: React.FC<{
   chess: Chess;
   sendMove: (move: Move) => void;
+  undo: () => void;
   blackPerspective?: boolean;
-}> = ({ chess, sendMove, blackPerspective }) => {
+}> = ({ chess, sendMove, undo, blackPerspective }) => {
   const { width, height } = useWindowSize();
   const [activeTile, setActiveTile] = useState<number>(-1);
   const [promotionMove, setPromotionMove] = useState<
@@ -114,30 +114,42 @@ const ChessBoard: React.FC<{
     setActiveTile(-1);
   };
 
+  const handleUndo = () => {
+    setPromotionMove(null);
+    setActiveTile(-1);
+    undo();
+  };
+
   return (
-    <div className="flex flex-row h-fit items-center">
-      <div
-        className="relative grid grid-rows-8 grid-cols-8 aspect-square border-8 border-black rounded-lg"
-        onClick={handleClick}
-        style={{ width: `${gridSize}px` }}
-      >
-        {blackPerspective == true ? tiles.reverse() : tiles}
-      </div>
-      {promotionMove == null ? (
-        <></>
-      ) : (
-        <div className="w-fit flex flex-col bg-black rounded-r-2xl p-1">
-          {PIECE_PROMOTION.map((p) => (
-            <img
-              key={p}
-              src={PIECES[promotionMove.color][p]}
-              style={{ width: `${gridSize / 8}px`, aspectRatio: 1 }}
-              onClick={() => sendPromotionMove(p)}
-            />
-          ))}
+    <>
+      <div className="relative w-fit h-fit isolate border-[6px] border-black rounded-lg peer">
+        <div
+          className="grid grid-rows-8 grid-cols-8 aspect-square"
+          onClick={handleClick}
+          style={{ width: `${gridSize}px` }}
+        >
+          {blackPerspective == true ? tiles.reverse() : tiles}
         </div>
-      )}
-    </div>
+        {promotionMove == null ? (
+          <></>
+        ) : (
+          <>
+            <div className="absolute top-0 left-0 right-0 bottom-0 bg-red-50 bg-opacity-50 peer-default:pointer-events-none"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2 gap-1 bg-black bg-opacity-80 rounded-2xl p-2 z-10">
+              {PIECE_PROMOTION.map((p) => (
+                <img
+                  key={p}
+                  src={PIECES[promotionMove.color][p]}
+                  style={{ width: `${gridSize / 8}px`, aspectRatio: 1 }}
+                  onClick={() => sendPromotionMove(p)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      <button onClick={handleUndo}>undo</button>
+    </>
   );
 };
 

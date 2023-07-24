@@ -11,17 +11,15 @@ const App = () => {
   };
 
   return (
-    <>
-      <ChessBoard key={chess.getFEN()} chess={chess} sendMove={sendMove} />
-      <button
-        onClick={() => {
-          chess.undo();
-          setUpdate((prev) => !prev);
-        }}
-      >
-        undo
-      </button>
-    </>
+    <ChessBoard
+      key={chess.getFEN()}
+      chess={chess}
+      sendMove={sendMove}
+      undo={() => {
+        chess.undo();
+        setUpdate((prev) => !prev);
+      }}
+    />
   );
 };
 
