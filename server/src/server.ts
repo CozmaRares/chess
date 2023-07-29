@@ -1,12 +1,115 @@
-import express, { Application, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import path from "path";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
+import { randomUUID } from "crypto";
+import Chess, { COLOR, Color, Move } from "./engine";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-const app: Application = express();
+const app = express();
+const server = http.createServer(app);
+const io = new Server(
+  server,
+  process.env.NODE_ENV === "development"
+    ? {
+        cors: {
+          origin: "http://localhost:3000",
+        },
+      }
+    : {}
+);
+
+type Room = {
+  [color in Color]: string | null;
+} & {
+  game: Chess;
+};
+
+const rooms: Map<string, Room> = new Map();
+
+io.on("connection", (socket) => {
+  console.log("A user connected", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected", socket.id);
+  });
+
+  socket.on("join game", (id: string, color: Color) => {
+    const room = rooms.get(id);
+
+    console.log({
+      isRoom: room != undefined,
+      w: room?.w,
+      b: room?.b,
+      sock: socket.id,
+      color,
+      cond:
+        room == undefined || (room[color] != null && room[color] != socket.id),
+    });
+
+    if (
+      room == undefined ||
+      (room[color] != null && room[color] != socket.id)
+    ) {
+      socket.emit("join error");
+      return;
+    }
+
+    socket.join(id);
+
+    room[color] = socket.id;
+
+    if (room[COLOR.WHITE] != null && room[COLOR.BLACK] != null)
+      io.to(id).emit("start game");
+  });
+
+  socket.on("make move", (id: string, move: Move) => {
+    socket.to(id).emit("receive move", move);
+  });
+});
+
+if (process.env.NODE_ENV === "development")
+  app.get("/games", (_req, res) => {
+    const m = new Map();
+    rooms.forEach((room, id) =>
+      m.set(id, {
+        w: room.w,
+        b: room.b,
+        game: room.game.getFEN(),
+      })
+    );
+    return res.json(Object.fromEntries(m));
+  });
+
+app.get("/api/create-game", (_req, res) => {
+  let id = randomUUID();
+
+  while (rooms.has(id)) id = randomUUID();
+
+  rooms.set(id, {
+    b: null,
+    w: null,
+    game: Chess.load(),
+  });
+
+  res.send(id);
+  console.log("Created room:", id);
+});
+
+app.get("/api/other-color/:id", (req, res) => {
+  const id = req.params.id;
+
+  const room = rooms.get(id);
+
+  if (room == undefined) res.send("invalid id");
+  else if (room[COLOR.WHITE] == null) res.send(COLOR.WHITE);
+  else if (room[COLOR.BLACK] == null) res.send(COLOR.BLACK);
+  else res.send("full");
+});
 
 if (process.env.NODE_ENV === "production") {
   const __dirname = path.resolve();
@@ -33,6 +136,6 @@ app.use((err: Error, _req: Request, res: Response) => {
   });
 });
 
-app.listen(PORT, () =>
+server.listen(PORT, () =>
   console.log("Server listening on http://localhost:" + PORT)
 );

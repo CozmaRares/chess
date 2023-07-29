@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import Chess from "../chess/engine";
+import Chess from "../engine";
 
 describe("insufficient material", () => {
   test("2 kings", () => {

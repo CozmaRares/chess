@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import Chess, { DEFAULT_POSITION } from "../chess/engine";
+import Chess, { DEFAULT_POSITION } from "../engine";
 
 test("starting position", () => {
   expect(Chess.load().getFEN()).toEqual(DEFAULT_POSITION);

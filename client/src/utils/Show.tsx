@@ -3,7 +3,7 @@ const Show: React.FC<{
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }> = ({ when, children, fallback }) => {
-  return <> {when ? children : fallback}</>;
+  return <> {when === true ? children : fallback ?? <></>}</>;
 };
 
 export default Show;

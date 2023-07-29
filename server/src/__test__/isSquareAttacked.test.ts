@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import Chess from "../chess/engine";
+import Chess from "../engine";
 
 test("", () => {
   const chess = Chess.load();

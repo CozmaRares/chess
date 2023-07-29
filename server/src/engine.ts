@@ -985,6 +985,10 @@ export default class Chess {
   // TODO: implement
   history() { }
 
+  toString() {
+    return this.getFEN();
+  }
+
   static Builder = class {
     private _board: Board = new Array(64).fill(null);
     private _turn: Color = COLOR.WHITE;

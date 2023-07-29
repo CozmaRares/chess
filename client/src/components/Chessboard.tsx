@@ -27,7 +27,7 @@ import Chess, {
   MOVE_FLAGS,
   PIECE_PROMOTION,
   PiecePromotionType,
-} from "../../../server/src/chess/engine";
+} from "../../../server/src/engine";
 import { MouseEventHandler, useState } from "react";
 import Show from "../utils/Show";
 import useWindowSize from "../utils/useWindowSize";
@@ -38,10 +38,9 @@ const PIECES: Record<Color, Record<PieceType, string>> = {
 };
 const ChessBoard: React.FC<{
   chess: Chess;
-  sendMove: (move: Move) => void;
-  undo: () => void;
+  makeMove: (move: Move) => void;
   blackPerspective?: boolean;
-}> = ({ chess, sendMove, undo, blackPerspective }) => {
+}> = ({ chess, makeMove, blackPerspective }) => {
   const { width, height } = useWindowSize();
   const [activeTile, setActiveTile] = useState<number>(-1);
   const [promotionMove, setPromotionMove] = useState<
@@ -90,7 +89,7 @@ const ChessBoard: React.FC<{
 
       if (tileProps[tile].isPromotion) return setPromotionMove(moveObj);
 
-      sendMove(moveObj);
+      makeMove(moveObj);
       setActiveTile(-1);
     }
 
@@ -109,22 +108,16 @@ const ChessBoard: React.FC<{
       promotion,
     };
 
-    sendMove(moveObj);
+    makeMove(moveObj);
     setPromotionMove(null);
     setActiveTile(-1);
-  };
-
-  const handleUndo = () => {
-    setPromotionMove(null);
-    setActiveTile(-1);
-    undo();
   };
 
   return (
     <>
       <div className="relative w-fit h-fit isolate border-[6px] border-black rounded-lg peer">
         <div
-          className="grid grid-rows-8 grid-cols-8 aspect-square"
+          className="grid grid-rows-8 grid-cols-8 aspect-square select-none"
           onClick={handleClick}
           style={{ width: `${gridSize}px` }}
         >
@@ -148,7 +141,6 @@ const ChessBoard: React.FC<{
           </>
         )}
       </div>
-      <button onClick={handleUndo}>undo</button>
     </>
   );
 };

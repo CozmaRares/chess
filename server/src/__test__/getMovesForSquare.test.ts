@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import Chess, { InternalMove, MOVE_FLAGS, Square } from "../chess/engine";
+import Chess, { InternalMove, MOVE_FLAGS, Square } from "../engine";
 
 type ExpectedMoves = Record<
   string,

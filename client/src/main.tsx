@@ -1,16 +1,21 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Home from "./routes/Home";
 import Game from "./routes/Game";
 
-const router = createBrowserRouter([{
-  path:'/',
-  element:<Game />
-}]);
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/game",
+    element: <Game />,
+  },
+]);
 
+// React's StricMode doesn't play well with how I implemented the socket connection
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+  <RouterProvider router={router} />
 );
