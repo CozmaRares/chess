@@ -169,7 +169,7 @@ const Tile: React.FC<{
   const color = squareColor(tileNumber);
 
   const { bg: bgColor, text: textColor } = TILE_COLORS[color];
-  const activeColor = isActive ? TILE_COLORS[color].active : "";
+  const activeColor = TILE_COLORS[color].active;
 
   const tileFile = file(tileNumber);
   const tileRank = rank(tileNumber);
@@ -180,7 +180,10 @@ const Tile: React.FC<{
 
   return (
     <div
-      className={`relative aspect-square font-bold text-xl isolate group [&>*]:pointer-events-none ${bgColor} ${activeColor}`}
+      className={
+        "relative aspect-square font-bold text-xl isolate group [&>*]:pointer-events-none " +
+        (isActive ? activeColor : bgColor)
+      }
       data-tile={tileNumber}
     >
       {piece == null ? <></> : <img src={PIECES[piece.color][piece.type]} />}

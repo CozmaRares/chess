@@ -8,6 +8,7 @@ import { socket } from "../sockets/socket";
 import { CopyIcon } from "../utils/icons";
 import Show from "../utils/Show";
 import ErrorNorification from "../utils/ErrorNotification";
+import Modal, { ModalButton } from "../utils/Modal";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Game = () => {
 
   const [chess] = useState(Chess.load());
   const [game, setGame] = useState(false);
-  const [, setRerender] = useState(false);
+  const [, rerender] = useState(false);
   const [err, setErr] = useState<Error>();
 
   const makeMove = (move: Move) => socket.emit("make move", id, move);
@@ -36,7 +37,6 @@ const Game = () => {
     });
 
     socket.on("join error", () => {
-      socket.disconnect();
       navigate("/", {
         state: { error: "Could not join, please try again." },
       });
@@ -50,7 +50,7 @@ const Game = () => {
 
     socket.on("receive move", (move: Move) => {
       chess.makeMove(move);
-      setRerender((prev) => !prev);
+      rerender((prev) => !prev);
     });
 
     return () => {
@@ -71,6 +71,22 @@ const Game = () => {
         blackPerspective={color === COLOR.BLACK}
         disabled={color !== chess.getTurn()}
       />
+      <Show when={chess.isGameOver()}>
+        <Modal overlay>
+          <div className="text-center w-40 max-w-full">
+            <h2 className="text-2xl mb-2">Game Over</h2>
+            <h1 className="text-lg font-bold">
+              {chess.isCheckMate()
+                ? (chess.getTurn() == color ? "Opponent" : "You") + " won!"
+                : "It's a draw!"}
+            </h1>
+            <div className="w-full h-[4px] rounded-b-lg bg-white mb-4"></div>
+            <ModalButton onClick={() => navigate("/")}>
+              Go to main page
+            </ModalButton>
+          </div>
+        </Modal>
+      </Show>
     </Show>
   );
 };

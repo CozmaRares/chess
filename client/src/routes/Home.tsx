@@ -3,14 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Color, COLOR } from "../../../server/src/engine";
 import Show from "../utils/Show";
 import ErrorNorification from "../utils/ErrorNotification";
+import Modal, { ModalButton } from "../utils/Modal";
 
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [id, setID] = useState<string>("");
-  const [join, setJoin] = useState(false);
   const [color, setColor] = useState<Color>(COLOR.WHITE);
+  const [join, setJoin] = useState(false);
+  const [create, setCreate] = useState(false);
 
   const [err, setErr] = useState<Error>();
   const { error } =
@@ -22,8 +24,8 @@ const Home = () => {
         if (res.ok) return res.text();
         throw res;
       })
-      .then((id) => {
-        setID(id);
+      .then((text) => {
+        navigate("/game", { state: { id: text, color } });
       })
       .catch((err) => {
         console.error(err);
@@ -56,89 +58,79 @@ const Home = () => {
 
   const errObj = err?.message
     ? {
-        error: err.message,
-        removeError: () => setErr(undefined),
-      }
+      error: err.message,
+      removeError: () => setErr(undefined),
+    }
     : {
-        error,
-        removeError: removeLocationState,
-      };
+      error,
+      removeError: removeLocationState,
+    };
 
   return (
     <>
       <ErrorNorification key={errObj.error} {...errObj} />
       <div className="text-xl">
-        <div className="absolute top-0 left-0 right-0 bottom-0 m-auto p-6 bg-gray-800 text-white w-fit h-fit rounded-[25px]">
-          <button
-            className="block cursor-pointer border-2 rounded-md p-2 w-full hover:bg-white hover:text-gray-800 transition-colors mb-3"
-            onClick={createGame}
-          >
-            Create Game
-          </button>
-          <button
-            className="block cursor-pointer border-2 rounded-md p-2 w-full hover:bg-white hover:text-gray-800 transition-colors"
-            onClick={() => setJoin(true)}
-          >
-            Join Game
-          </button>
+        <div className="absolute top-0 left-0 right-0 bottom-0 m-auto w-fit h-fit"> 
+        <Modal>
+          <ModalButton onClick={() => setCreate(true)}>Create Game</ModalButton>
+          <ModalButton onClick={() => setJoin(true)}>Join Game</ModalButton>
+        </Modal>
         </div>
-        <Show when={join == false && id != ""}>
-          <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full flex justify-center items-center bg-zinc-800 bg-opacity-70">
-            <div className="bg-gray-900 text-white p-4 rounded-lg">
+        <Show when={create}>
+          <Modal overlay>
+            <div className="w-[20rem] max-w-full">
               <p>Select color:</p>
-              <div className="grid grid-cols-[auto,minmax(0,1fr)] text-center ">
-                <input
-                  type="radio"
-                  name="color"
-                  id="white"
-                  checked={color == COLOR.WHITE}
-                  onChange={() => setColor(COLOR.WHITE)}
-                />
-                <label htmlFor="white">White</label>
-                <input
-                  type="radio"
-                  name="color"
-                  id="black"
-                  checked={color == COLOR.BLACK}
-                  onChange={() => setColor(COLOR.BLACK)}
-                />
-                <label htmlFor="black">Black</label>
+              <div className="flex flex-row justify-evenly">
+                <div className="flex flex-row items-center gap-2">
+                  <input
+                    type="radio"
+                    name="color"
+                    id="white"
+                    checked={color == COLOR.WHITE}
+                    onChange={() => setColor(COLOR.WHITE)}
+                  />
+                  <label htmlFor="white">White</label>
+                </div>
+                <div className="flex flex-row items-center gap-2">
+                  <input
+                    type="radio"
+                    name="color"
+                    id="black"
+                    checked={color == COLOR.BLACK}
+                    onChange={() => setColor(COLOR.BLACK)}
+                  />
+                  <label htmlFor="black">Black</label>
+                </div>
               </div>
-              <button
-                className="block cursor-pointer border-2 rounded-md p-2 w-full hover:bg-white hover:text-gray-800 transition-colors mt-3"
-                onClick={() => navigate("/game", { state: { id, color } })}
+              <ModalButton
+                onClick={createGame}
               >
                 Start Game
-              </button>
+              </ModalButton>
+              <ModalButton
+                onClick={() => setCreate(false)}
+              >
+                Cancel
+              </ModalButton>
             </div>
-          </div>
+          </Modal>
         </Show>
         <Show when={join}>
-          <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full flex justify-center items-center bg-zinc-800 bg-opacity-70">
-            <div className="bg-gray-900 text-white p-4 rounded-lg">
+          <Modal overlay>
+            <div className="w-[20rem] max-w-full">
               <label htmlFor="game-id">Insert game ID: </label>
               <input
-                className="block bg-zinc-700 p-1 mt-2"
+                className="block bg-zinc-700 p-1 mt-2 w-full"
                 type="text"
                 name="game-id"
                 id="game-id"
                 value={id}
                 onChange={(e) => setID(e.target.value)}
               />
-              <button
-                className="block cursor-pointer border-2 rounded-md p-2 w-full hover:bg-white hover:text-gray-800 transition-colors mt-3"
-                onClick={joinGame}
-              >
-                Join
-              </button>
-              <button
-                className="block cursor-pointer border-2 rounded-md p-2 w-full hover:bg-white hover:text-gray-800 transition-colors mt-3"
-                onClick={() => setJoin(false)}
-              >
-                Cancel
-              </button>
+              <ModalButton onClick={joinGame}>Join</ModalButton>
+              <ModalButton onClick={() => setJoin(false)}>Cancel</ModalButton>
             </div>
-          </div>
+          </Modal>
         </Show>
       </div>
     </>

@@ -42,6 +42,7 @@ io.on("connection", (socket) => {
     const room = rooms.get(id);
 
     if (
+      socket.rooms.size >= 2 ||
       room == undefined ||
       (room[color] != null && room[color] != socket.id)
     ) {
@@ -69,10 +70,13 @@ io.on("connection", (socket) => {
 
     try {
       chess.makeMove(move);
-      io.to(id).emit("receive move", move);
     } catch (e) {
-      socket.emit("move error", (e as Error).message);
+      return socket.emit("move error", (e as Error).message);
     }
+
+    io.to(id).emit("receive move", move);
+
+    if (chess.isGameOver()) rooms.delete(id);
   });
 });
 
