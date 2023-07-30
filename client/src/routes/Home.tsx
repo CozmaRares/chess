@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Color, COLOR } from "../../../server/src/engine";
 import Show from "../utils/Show";
+import { CircleExclamation } from "../utils/icons";
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [id, setID] = useState<string>("");
   const [join, setJoin] = useState(false);
   const [color, setColor] = useState<Color>(COLOR.WHITE);
-  const [error, setError] = useState<Error>();
+
+  const [err, setErr] = useState<Error>();
+  const { error } =
+    location.state != null ? location.state : { error: undefined };
 
   const createGame = () => {
     fetch("/api/create-game")
@@ -21,7 +27,7 @@ const Home = () => {
       })
       .catch((err) => {
         console.error(err);
-        setError(error);
+        setErr(err);
       });
   };
 
@@ -33,20 +39,23 @@ const Home = () => {
       })
       .then((text) => {
         if (text == "invalid id") throw new Error("Invalid game ID");
-        if (text == "full") throw new Error("Game already had 2 players");
+        if (text == "full") throw new Error("Game already has 2 players");
 
         if (text == COLOR.BLACK)
           navigate("/game", { state: { id, color: text } });
       })
       .catch((err) => {
         console.error(err);
-        setError(error);
+        setErr(err);
+        setID("");
+        setJoin(false);
       });
   };
 
   return (
     <>
-      <Err />
+      <Err key={err?.message} error={err?.message} />
+      <Err key={error} error={error} />
       <div className="text-xl">
         <div className="absolute top-0 left-0 right-0 bottom-0 m-auto p-6 bg-gray-800 text-white w-fit h-fit rounded-[25px]">
           <button
@@ -118,14 +127,44 @@ const Home = () => {
   );
 };
 
-// FIX: currently not working
-const Err = () => {
-  const { state } = useLocation();
-  const error = state?.state;
+const Err: React.FC<{
+  error?: string;
+}> = ({ error }) => {
+  const [err, setErr] = useState(error);
+  const divRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      let duration = 1;
+      if (divRef.current != null) {
+        divRef.current.classList.add(
+          "opacity-0",
+          "transition-opacity",
+          "duration-300"
+        );
+        duration = 300;
+      }
+
+      setTimeout(() => {
+        setErr(undefined);
+        console.log("Removed error");
+      }, duration);
+    }, 2 * 1000);
+
+    return () => clearTimeout(id);
+  }, []);
 
   return (
-    <Show when={error != undefined}>
-      <div>{error}</div>
+    <Show when={err != undefined}>
+      <div
+        ref={divRef}
+        className="flex justify-center items-center gap-1 w-fit mt-2 mr-4 ml-auto border border-black p-2 rounded-md text-lg"
+      >
+        <span className="text-red-700">
+          <CircleExclamation />
+        </span>
+        {err}
+      </div>
     </Show>
   );
 };
