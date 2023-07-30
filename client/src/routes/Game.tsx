@@ -17,10 +17,12 @@ const Game = () => {
 
   const [chess] = useState(Chess.load());
   const [game, setGame] = useState(false);
+  const [, setRerender] = useState(false);
 
   const makeMove = (move: Move) => {
     socket.emit("make move", id, move);
     chess.makeMove(move);
+    setRerender((prev) => !prev);
   };
 
   useEffect(() => {
@@ -51,9 +53,9 @@ const Game = () => {
 
     socket.on("start game", () => setGame(true));
 
-    // TODO: board doesn't rerender
     socket.on("receive move", (move: Move) => {
       chess.makeMove(move);
+      setRerender((prev) => !prev);
     });
 
     return () => {
@@ -68,6 +70,7 @@ const Game = () => {
         chess={chess}
         makeMove={makeMove}
         blackPerspective={color === COLOR.BLACK}
+        disabled={color != chess.getTurn()}
       />
     </Show>
   );

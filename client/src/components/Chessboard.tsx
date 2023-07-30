@@ -40,7 +40,8 @@ const ChessBoard: React.FC<{
   chess: Chess;
   makeMove: (move: Move) => void;
   blackPerspective?: boolean;
-}> = ({ chess, makeMove, blackPerspective }) => {
+  disabled: boolean;
+}> = ({ chess, makeMove, blackPerspective, disabled }) => {
   const { width, height } = useWindowSize();
   const [activeTile, setActiveTile] = useState<number>(-1);
   const [promotionMove, setPromotionMove] = useState<
@@ -72,7 +73,7 @@ const ChessBoard: React.FC<{
   ));
 
   const handleClick: MouseEventHandler<HTMLDivElement> = (e) => {
-    if (promotionMove != null) return;
+    if (disabled || promotionMove != null) return;
 
     // TODO: fix types
     // @ts-ignore

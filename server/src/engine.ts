@@ -978,7 +978,7 @@ export default class Chess {
     this._computeMoves();
   }
 
-  turn() {
+  getTurn() {
     return this._turn;
   }
 

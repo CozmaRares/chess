@@ -41,8 +41,7 @@ const Home = () => {
         if (text == "invalid id") throw new Error("Invalid game ID");
         if (text == "full") throw new Error("Game already has 2 players");
 
-        if (text == COLOR.BLACK)
-          navigate("/game", { state: { id, color: text } });
+        navigate("/game", { state: { id, color: text } });
       })
       .catch((err) => {
         console.error(err);
@@ -52,10 +51,25 @@ const Home = () => {
       });
   };
 
+  const removeLocationState = () =>
+    window.history.replaceState({ state: null }, document.title);
+
+  const errObj = err?.message
+    ? {
+        error: err.message,
+        removeError: () => setErr(undefined),
+      }
+    : {
+        error,
+        removeError: removeLocationState,
+      };
+
   return (
     <>
-      <Err key={err?.message} error={err?.message} />
-      <Err key={error} error={error} />
+      <Err
+        key={errObj.error}
+        {...errObj}
+      />
       <div className="text-xl">
         <div className="absolute top-0 left-0 right-0 bottom-0 m-auto p-6 bg-gray-800 text-white w-fit h-fit rounded-[25px]">
           <button
@@ -80,7 +94,7 @@ const Home = () => {
                   type="radio"
                   name="color"
                   id="white"
-                  checked
+                  checked={color == COLOR.WHITE}
                   onChange={() => setColor(COLOR.WHITE)}
                 />
                 <label htmlFor="white">White</label>
@@ -88,6 +102,7 @@ const Home = () => {
                   type="radio"
                   name="color"
                   id="black"
+                  checked={color == COLOR.BLACK}
                   onChange={() => setColor(COLOR.BLACK)}
                 />
                 <label htmlFor="black">Black</label>
@@ -119,6 +134,12 @@ const Home = () => {
               >
                 Join
               </button>
+              <button
+                className="block cursor-pointer border-2 rounded-md p-2 w-full hover:bg-white hover:text-gray-800 transition-colors mt-3"
+                onClick={() => setJoin(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </Show>
@@ -129,7 +150,8 @@ const Home = () => {
 
 const Err: React.FC<{
   error?: string;
-}> = ({ error }) => {
+  removeError: () => void;
+}> = ({ error, removeError }) => {
   const [err, setErr] = useState(error);
   const divRef = useRef<HTMLDivElement | null>(null);
 
@@ -146,6 +168,7 @@ const Err: React.FC<{
       }
 
       setTimeout(() => {
+        removeError();
         setErr(undefined);
         console.log("Removed error");
       }, duration);
