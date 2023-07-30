@@ -97,7 +97,6 @@ const ChessBoard: React.FC<{
 
     if (tileProps[tile].piece == null) return setActiveTile(-1);
 
-    console.log({ tile: algebraic(tile), activeTile: algebraic(activeTile) });
     setActiveTile(tile == activeTile ? -1 : tile);
   };
 

@@ -26,7 +26,6 @@ const ErrorNorification: React.FC<{
       setTimeout(() => {
         removeError();
         setErr(undefined);
-        console.log("Removed error");
       }, duration);
     }, 2 * 1000);
 

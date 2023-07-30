@@ -41,16 +41,6 @@ io.on("connection", (socket) => {
   socket.on("join game", (id: string, color: Color) => {
     const room = rooms.get(id);
 
-    console.log({
-      isRoom: room != undefined,
-      w: room?.w,
-      b: room?.b,
-      sock: socket.id,
-      color,
-      cond:
-        room == undefined || (room[color] != null && room[color] != socket.id),
-    });
-
     if (
       room == undefined ||
       (room[color] != null && room[color] != socket.id)
@@ -111,7 +101,6 @@ app.get("/api/create-game", (_req, res) => {
   });
 
   res.send(id);
-  console.log("Created room:", id);
 });
 
 app.get("/api/other-color/:id", (req, res) => {

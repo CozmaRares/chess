@@ -24,8 +24,6 @@ const Game = () => {
   const makeMove = (move: Move) => socket.emit("make move", id, move);
 
   useEffect(() => {
-    console.log({ id, color });
-
     if (id == undefined || color == undefined)
       return navigate("/", {
         state: { error: "Did not receive a game ID or color." },
@@ -34,12 +32,7 @@ const Game = () => {
     socket.connect();
 
     socket.on("connect", () => {
-      console.log("Connected to socket", socket.id);
       socket.emit("join game", id, color);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected");
     });
 
     socket.on("join error", () => {
