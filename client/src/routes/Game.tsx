@@ -7,6 +7,7 @@ import useCopyToClipboard from "../utils/useCopyToClipboard";
 import { socket } from "../sockets/socket";
 import { CopyIcon } from "../utils/icons";
 import Show from "../utils/Show";
+import ErrorNorification from "../utils/ErrorNotification";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -18,12 +19,9 @@ const Game = () => {
   const [chess] = useState(Chess.load());
   const [game, setGame] = useState(false);
   const [, setRerender] = useState(false);
+  const [err, setErr] = useState<Error>();
 
-  const makeMove = (move: Move) => {
-    socket.emit("make move", id, move);
-    chess.makeMove(move);
-    setRerender((prev) => !prev);
-  };
+  const makeMove = (move: Move) => socket.emit("make move", id, move);
 
   useEffect(() => {
     console.log({ id, color });
@@ -51,6 +49,10 @@ const Game = () => {
       });
     });
 
+    socket.on("move error", (message: string) => {
+      setErr(new Error(message));
+    });
+
     socket.on("start game", () => setGame(true));
 
     socket.on("receive move", (move: Move) => {
@@ -65,12 +67,16 @@ const Game = () => {
 
   return (
     <Show when={game} fallback={<Waiting id={id} />}>
+      <ErrorNorification
+        error={err?.message}
+        removeError={() => setErr(undefined)}
+      />
       <ChessBoard
         key={chess.getFEN()}
         chess={chess}
         makeMove={makeMove}
         blackPerspective={color === COLOR.BLACK}
-        disabled={color != chess.getTurn()}
+        disabled={color !== chess.getTurn()}
       />
     </Show>
   );

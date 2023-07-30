@@ -821,7 +821,7 @@ export default class Chess {
     }
 
     if (moveObj == null)
-      throw new Error(`Move ${JSON.stringify(move)} not found`);
+      throw new Error("Move not found");
 
     this._makeMove(moveObj);
   }

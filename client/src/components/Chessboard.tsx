@@ -40,7 +40,7 @@ const ChessBoard: React.FC<{
   chess: Chess;
   makeMove: (move: Move) => void;
   blackPerspective?: boolean;
-  disabled: boolean;
+  disabled?: boolean;
 }> = ({ chess, makeMove, blackPerspective, disabled }) => {
   const { width, height } = useWindowSize();
   const [activeTile, setActiveTile] = useState<number>(-1);
@@ -92,12 +92,13 @@ const ChessBoard: React.FC<{
 
       makeMove(moveObj);
       setActiveTile(-1);
+      return;
     }
 
     if (tileProps[tile].piece == null) return setActiveTile(-1);
 
-    if (tile == activeTile) setActiveTile(-1);
-    else setActiveTile(tile);
+    console.log({ tile: algebraic(tile), activeTile: algebraic(activeTile) });
+    setActiveTile(tile == activeTile ? -1 : tile);
   };
 
   const sendPromotionMove = (promotion: PiecePromotionType) => {

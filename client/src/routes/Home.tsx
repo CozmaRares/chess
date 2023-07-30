@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Color, COLOR } from "../../../server/src/engine";
 import Show from "../utils/Show";
-import { CircleExclamation } from "../utils/icons";
+import ErrorNorification from "../utils/ErrorNotification";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -66,10 +66,7 @@ const Home = () => {
 
   return (
     <>
-      <Err
-        key={errObj.error}
-        {...errObj}
-      />
+      <ErrorNorification key={errObj.error} {...errObj} />
       <div className="text-xl">
         <div className="absolute top-0 left-0 right-0 bottom-0 m-auto p-6 bg-gray-800 text-white w-fit h-fit rounded-[25px]">
           <button
@@ -145,50 +142,6 @@ const Home = () => {
         </Show>
       </div>
     </>
-  );
-};
-
-const Err: React.FC<{
-  error?: string;
-  removeError: () => void;
-}> = ({ error, removeError }) => {
-  const [err, setErr] = useState(error);
-  const divRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      let duration = 1;
-      if (divRef.current != null) {
-        divRef.current.classList.add(
-          "opacity-0",
-          "transition-opacity",
-          "duration-300"
-        );
-        duration = 300;
-      }
-
-      setTimeout(() => {
-        removeError();
-        setErr(undefined);
-        console.log("Removed error");
-      }, duration);
-    }, 2 * 1000);
-
-    return () => clearTimeout(id);
-  }, []);
-
-  return (
-    <Show when={err != undefined}>
-      <div
-        ref={divRef}
-        className="flex justify-center items-center gap-1 w-fit mt-2 mr-4 ml-auto border border-black p-2 rounded-md text-lg"
-      >
-        <span className="text-red-700">
-          <CircleExclamation />
-        </span>
-        {err}
-      </div>
-    </Show>
   );
 };
 

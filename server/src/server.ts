@@ -68,7 +68,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("make move", (id: string, move: Move) => {
-    socket.to(id).emit("receive move", move);
+    const room = rooms.get(id);
+
+    if (room == undefined) return socket.emit("move error", "Invalid game ID");
+
+    const chess = room.game;
+
+    if (socket.id != room[chess.getTurn()])
+      return socket.emit("move error", "Not your turn!");
+
+    try {
+      chess.makeMove(move);
+      io.to(id).emit("receive move", move);
+    } catch (e) {
+      socket.emit("move error", (e as Error).message);
+    }
   });
 });
 
