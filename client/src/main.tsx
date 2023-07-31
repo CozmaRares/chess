@@ -32,6 +32,7 @@ const router = createBrowserRouter([
   },
 ]);
 
+// TODO: better UI
 // React's StricMode doesn't play well with how I implemented the socket connection
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full bg-zinc-200 -z-10">

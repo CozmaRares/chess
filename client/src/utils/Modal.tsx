@@ -1,14 +1,14 @@
 const Modal: React.FC<{
   children: React.ReactNode;
-  overlay?: boolean;
-}> = ({ children, overlay }) => {
+  enableOverlay?: boolean;
+}> = ({ children, enableOverlay }) => {
   const modal = (
     <div className="bg-gray-900 text-white p-4 rounded-lg w-fit">
       {children}
     </div>
   );
 
-  return overlay ? (
+  return enableOverlay ? (
     <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full flex justify-center items-center bg-zinc-800 bg-opacity-70">
       {modal}
     </div>

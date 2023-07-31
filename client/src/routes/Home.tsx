@@ -77,7 +77,7 @@ const Home = () => {
         </Modal>
         </div>
         <Show when={create}>
-          <Modal overlay>
+          <Modal enableOverlay>
             <div className="w-[20rem] max-w-full">
               <p>Select color:</p>
               <div className="flex flex-row justify-evenly">
@@ -116,7 +116,7 @@ const Home = () => {
           </Modal>
         </Show>
         <Show when={join}>
-          <Modal overlay>
+          <Modal enableOverlay>
             <div className="w-[20rem] max-w-full">
               <label htmlFor="game-id">Insert game ID: </label>
               <input

@@ -68,6 +68,7 @@ const Game = () => {
         error={err?.message}
         removeError={() => setErr(undefined)}
       />
+      {/* TODO: add taken pieces */}
       <ChessBoard
         key={chess.getFEN()}
         chess={chess}
@@ -75,8 +76,9 @@ const Game = () => {
         blackPerspective={color === COLOR.BLACK}
         disabled={color !== chess.getTurn()}
       />
+      {/* TODO: add history */}
       <Show when={opponentDisconnect || chess.isGameOver()}>
-        <Modal overlay>
+        <Modal enableOverlay>
           <div className="text-center w-50 max-w-full">
             <h2 className="text-2xl mb-2">Game Over</h2>
             <h1 className="text-lg font-bold">

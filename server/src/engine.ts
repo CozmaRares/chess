@@ -504,8 +504,6 @@ export default class Chess {
   private _attacks: number[] = [];
   private _history: string[] = [];
   private _enableProcessMoves = true;
-  private _checkMate = false;
-  private _draw = false;
   private _boardPositionCounter = new Map<string, number>();
 
   private constructor(
@@ -606,13 +604,6 @@ export default class Chess {
     this._computeMoves();
 
     if (!undo) this._modifyPositionCounter(false);
-
-    this._checkMate = this.isCheck() && this._moves.length === 0;
-    this._draw =
-      this._halfMoves >= 100 || // 50 moves per side = 100 half moves
-      this.isStalemate() ||
-      this.isInsufficientMaterial() ||
-      this.isThreefoldRepetition();
   }
 
   private static _load(fen: string, enableProcessMoves: boolean) {
@@ -905,7 +896,7 @@ export default class Chess {
   }
 
   isCheckMate() {
-    return this._checkMate;
+    return this.isCheck() && this._moves.length === 0;
   }
 
   isStalemate() {
@@ -947,13 +938,17 @@ export default class Chess {
     return true;
   }
 
-  // TODO: implement
   isThreefoldRepetition() {
     return this._getPositionCounter() >= 3;
   }
 
   isDraw() {
-    return this._draw;
+    return (
+      this._halfMoves >= 100 || // 50 moves per side = 100 half moves
+      this.isStalemate() ||
+      this.isInsufficientMaterial() ||
+      this.isThreefoldRepetition()
+    );
   }
 
   isGameOver() {
@@ -1048,3 +1043,6 @@ export default class Chess {
     }
   };
 }
+
+// FIX: tests
+// TODO: add missing tests for features
