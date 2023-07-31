@@ -21,6 +21,7 @@ const Game = () => {
   const [game, setGame] = useState(false);
   const [, rerender] = useState(false);
   const [err, setErr] = useState<Error>();
+  const [opponentDisconnect, setOpponentDisconnect] = useState(false);
 
   const makeMove = (move: Move) => socket.emit("make move", id, move);
 
@@ -53,6 +54,8 @@ const Game = () => {
       rerender((prev) => !prev);
     });
 
+    socket.on("opponent disconnect", () => setOpponentDisconnect(true));
+
     return () => {
       socket.off();
       socket.disconnect();
@@ -72,14 +75,16 @@ const Game = () => {
         blackPerspective={color === COLOR.BLACK}
         disabled={color !== chess.getTurn()}
       />
-      <Show when={chess.isGameOver()}>
+      <Show when={opponentDisconnect || chess.isGameOver()}>
         <Modal overlay>
-          <div className="text-center w-40 max-w-full">
+          <div className="text-center w-50 max-w-full">
             <h2 className="text-2xl mb-2">Game Over</h2>
             <h1 className="text-lg font-bold">
-              {chess.isCheckMate()
-                ? (chess.getTurn() == color ? "Opponent" : "You") + " won!"
-                : "It's a draw!"}
+              {opponentDisconnect
+                ? "Opponent disconnected..."
+                : chess.isCheckMate()
+                  ? (chess.getTurn() == color ? "Opponent" : "You") + " won!"
+                  : "It's a draw!"}
             </h1>
             <div className="w-full h-[4px] rounded-b-lg bg-white mb-4"></div>
             <ModalButton onClick={() => navigate("/")}>

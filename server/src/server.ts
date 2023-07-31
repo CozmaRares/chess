@@ -35,8 +35,18 @@ io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
   socket.on("disconnect", () => {
-    // TODO: handle disconnect
     console.log("A user disconnected", socket.id);
+
+    let roomID: string | undefined = undefined;
+
+    rooms.forEach((room, id) => {
+      if (room.w == socket.id || room.b == socket.id) roomID = id;
+    });
+
+    if (roomID == undefined) return;
+
+    rooms.delete(roomID);
+    io.to(roomID).emit("opponent disconnect");
   });
 
   socket.on("join game", (id: string, color: Color) => {
