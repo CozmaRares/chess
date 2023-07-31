@@ -4,7 +4,7 @@ import ChessBoard from "../components/Chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
 import useCopyToClipboard from "../utils/useCopyToClipboard";
 
-import { socket } from "../sockets/socket";
+import { socket } from "../utils/socket";
 import { CopyIcon } from "../utils/icons";
 import Show from "../utils/Show";
 import ErrorNorification from "../utils/ErrorNotification";
@@ -54,6 +54,7 @@ const Game = () => {
     });
 
     return () => {
+      socket.off();
       socket.disconnect();
     };
   }, []);

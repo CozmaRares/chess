@@ -16,10 +16,10 @@ const io = new Server(
   server,
   process.env.NODE_ENV === "development"
     ? {
-        cors: {
-          origin: "http://localhost:3000",
-        },
-      }
+      cors: {
+        origin: "http://localhost:3000",
+      },
+    }
     : {}
 );
 
@@ -35,6 +35,7 @@ io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
   socket.on("disconnect", () => {
+    // TODO: handle disconnect
     console.log("A user disconnected", socket.id);
   });
 

@@ -1,5 +1,3 @@
-import Show from "./Show";
-
 const Modal: React.FC<{
   children: React.ReactNode;
   overlay?: boolean;

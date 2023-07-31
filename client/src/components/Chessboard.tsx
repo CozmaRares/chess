@@ -75,9 +75,7 @@ const ChessBoard: React.FC<{
   const handleClick: MouseEventHandler<HTMLDivElement> = (e) => {
     if (disabled || promotionMove != null) return;
 
-    // TODO: fix types
-    // @ts-ignore
-    const tile = parseInt(e.target.dataset.tile);
+    const tile = parseInt((e.target as HTMLDivElement).dataset.tile ?? "");
 
     if (isNaN(tile)) return;
 

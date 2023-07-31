@@ -201,7 +201,7 @@ export function validateFEN(fen: string): void {
         if (!isPieceValid(symbol.toLowerCase()))
           throw new Error(
             "Invalid FEN - board position contains an invalid piece symbol: " +
-              symbol
+            symbol
           );
 
         numSquares++;
@@ -506,6 +506,7 @@ export default class Chess {
   private _enableProcessMoves = true;
   private _checkMate = false;
   private _draw = false;
+  private _boardPositionCounter = new Map<string, number>();
 
   private constructor(
     board: Board,
@@ -590,8 +591,22 @@ export default class Chess {
     }
   }
 
-  private _processBoardState() {
+  private _getPositionCounter() {
+    const trimFEN = this.getFEN(true);
+    return this._boardPositionCounter.get(trimFEN) ?? 0;
+  }
+
+  private _modifyPositionCounter(decrement: boolean) {
+    const trimFEN = this.getFEN(true);
+    const counter = this._boardPositionCounter.get(trimFEN) ?? 0;
+    this._boardPositionCounter.set(trimFEN, counter + (decrement ? -1 : 1));
+  }
+
+  private _processBoardState(undo = false) {
     this._computeMoves();
+
+    if (!undo) this._modifyPositionCounter(false);
+
     this._checkMate = this.isCheck() && this._moves.length === 0;
     this._draw =
       this._halfMoves >= 100 || // 50 moves per side = 100 half moves
@@ -648,7 +663,7 @@ export default class Chess {
     this._fullMoves = chess._fullMoves;
   }
 
-  getFEN() {
+  getFEN(trim = false) {
     let position = "";
     let emptySquares = 0;
 
@@ -685,14 +700,16 @@ export default class Chess {
     if (this._castling.b & MOVE_FLAGS.Q_CASTLE) castling += "q";
     if (castling == "") castling = "-";
 
-    return [
+    const arr: any[] = [
       position.substring(1), // remove first '/'
       this._turn,
       castling,
       this._enPassant,
-      this._halfMoves,
-      this._fullMoves,
-    ].join(" ");
+    ];
+
+    if (!trim) arr.push(this._halfMoves, this._fullMoves);
+
+    return arr.join(" ");
   }
 
   getPiece(square: Square | number) {
@@ -759,9 +776,9 @@ export default class Chess {
     this._board[squareIndex(move.to)] =
       move.flags & MOVE_FLAGS.PROMOTION
         ? {
-            type: move.promotion as PieceType,
-            color: myColor,
-          }
+          type: move.promotion as PieceType,
+          color: myColor,
+        }
         : this._board[squareIndex(move.from)];
     this._board[squareIndex(move.from)] = null;
     let keepEpSquare = false;
@@ -920,10 +937,10 @@ export default class Chess {
       remainingPieces[PIECE.BISHOP][COLOR.WHITE] == 2 ||
       remainingPieces[PIECE.BISHOP][COLOR.BLACK] == 2 ||
       remainingPieces[PIECE.BISHOP][COLOR.WHITE] +
-        remainingPieces[PIECE.BISHOP][COLOR.BLACK] +
-        remainingPieces[PIECE.KNIGHT][COLOR.WHITE] +
-        remainingPieces[PIECE.KNIGHT][COLOR.BLACK] >=
-        3
+      remainingPieces[PIECE.BISHOP][COLOR.BLACK] +
+      remainingPieces[PIECE.KNIGHT][COLOR.WHITE] +
+      remainingPieces[PIECE.KNIGHT][COLOR.BLACK] >=
+      3
     )
       return false;
 
@@ -932,7 +949,7 @@ export default class Chess {
 
   // TODO: implement
   isThreefoldRepetition() {
-    return false;
+    return this._getPositionCounter() >= 3;
   }
 
   isDraw() {
@@ -945,6 +962,7 @@ export default class Chess {
 
   // TODO: store the history in a tree
   undo() {
+    this._modifyPositionCounter(true);
     const lastFen = this._history.pop();
     if (lastFen == undefined) return;
 
@@ -956,7 +974,7 @@ export default class Chess {
     this._halfMoves = chess._halfMoves;
     this._fullMoves = chess._fullMoves;
     this._kings = chess._kings;
-    this._processBoardState();
+    this._processBoardState(true);
   }
 
   getTurn() {
@@ -964,7 +982,7 @@ export default class Chess {
   }
 
   // TODO: implement
-  history() {}
+  history() { }
 
   toString() {
     return this.getFEN();
