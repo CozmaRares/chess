@@ -502,7 +502,7 @@ export default class Chess {
 
   private _moves: InternalMove[] = [];
   private _attacks: number[] = [];
-  private _history: string[] = [];
+  private _history: Readonly<{ fen: string; san: string }>[] = [];
   private _enableProcessMoves = true;
   private _boardPositionCounter = new Map<string, number>();
 
@@ -762,7 +762,10 @@ export default class Chess {
     const myColor = this._turn;
     const theirColor = swapColor(this._turn);
 
-    this._history.push(this.getFEN());
+    this._history.push({
+      fen: this.getFEN(),
+      san: this._generateSan(move),
+    });
 
     this._board[squareIndex(move.to)] =
       move.flags & MOVE_FLAGS.PROMOTION
@@ -825,6 +828,11 @@ export default class Chess {
     this._turn = theirColor;
     this._updateCastling();
     this._processBoardState();
+  }
+
+  // TODO: implement
+  private _generateSan(move: InternalMove) {
+    return `${move.from} ${move.to}`;
   }
 
   makeMove(move: Move) {
@@ -955,13 +963,12 @@ export default class Chess {
     return this.isCheckMate() || this.isDraw();
   }
 
-  // TODO: store the history in a tree
   undo() {
     this._modifyPositionCounter(true);
-    const lastFen = this._history.pop();
-    if (lastFen == undefined) return;
+    const lastHistory = this._history.pop();
+    if (lastHistory == undefined) return;
 
-    const chess = Chess._load(lastFen, this._enableProcessMoves);
+    const chess = Chess._load(lastHistory.fen, this._enableProcessMoves);
     this._board = chess._board;
     this._turn = chess._turn;
     this._castling = chess._castling;
@@ -976,11 +983,8 @@ export default class Chess {
     return this._turn;
   }
 
-  // TODO: implement
-  history() { }
-
-  toString() {
-    return this.getFEN();
+  getHistory() {
+    return this._history;
   }
 
   static Builder = class {

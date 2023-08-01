@@ -114,9 +114,9 @@ const ChessBoard: React.FC<{
 
   return (
     <>
-      <div className="relative w-fit h-fit isolate border-[6px] border-black rounded-lg peer">
+      <div className="relative w-fit h-fit max-w-full isolate border-[6px] border-black rounded-lg peer">
         <div
-          className="grid grid-rows-8 grid-cols-8 aspect-square select-none"
+          className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-w-full"
           onClick={handleClick}
           style={{ width: `${gridSize}px` }}
         >

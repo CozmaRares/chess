@@ -25,7 +25,7 @@ const Home = () => {
         throw res;
       })
       .then((text) => {
-        navigate("/game", { state: { id: text, color } });
+        navigate("/game/online", { state: { id: text, color } });
       })
       .catch((err) => {
         console.error(err);
@@ -43,7 +43,7 @@ const Home = () => {
         if (text == "invalid id") throw new Error("Invalid game ID");
         if (text == "full") throw new Error("Game already has 2 players");
 
-        navigate("/game", { state: { id, color: text } });
+        navigate("/game/online", { state: { id, color: text } });
       })
       .catch((err) => {
         console.error(err);
@@ -70,11 +70,16 @@ const Home = () => {
     <>
       <ErrorNorification key={errObj.error} {...errObj} />
       <div className="text-xl">
-        <div className="absolute top-0 left-0 right-0 bottom-0 m-auto w-fit h-fit"> 
-        <Modal>
-          <ModalButton onClick={() => setCreate(true)}>Create Game</ModalButton>
-          <ModalButton onClick={() => setJoin(true)}>Join Game</ModalButton>
-        </Modal>
+        <div className="absolute top-0 left-0 right-0 bottom-0 m-auto w-fit h-fit">
+          <Modal>
+            <ModalButton onClick={() => setCreate(true)}>
+              Create Game
+            </ModalButton>
+            <ModalButton onClick={() => setJoin(true)}>Join Game</ModalButton>
+            <ModalButton onClick={() => navigate("/game/local")}>
+              Play locally
+            </ModalButton>
+          </Modal>
         </div>
         <Show when={create}>
           <Modal enableOverlay>
@@ -102,16 +107,8 @@ const Home = () => {
                   <label htmlFor="black">Black</label>
                 </div>
               </div>
-              <ModalButton
-                onClick={createGame}
-              >
-                Start Game
-              </ModalButton>
-              <ModalButton
-                onClick={() => setCreate(false)}
-              >
-                Cancel
-              </ModalButton>
+              <ModalButton onClick={createGame}>Start Game</ModalButton>
+              <ModalButton onClick={() => setCreate(false)}>Cancel</ModalButton>
             </div>
           </Modal>
         </Show>

@@ -1,6 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  font-family: "Ubuntu Mono", monospace;
+}
 
 img {
   max-width: 100%;
