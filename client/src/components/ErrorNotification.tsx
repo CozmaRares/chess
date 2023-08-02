@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Show from "./Show";
+import Show from "../utils/Show";
 import { CircleExclamation } from "./icons";
 
 const ErrorNorification: React.FC<{

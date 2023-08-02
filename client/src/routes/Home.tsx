@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Color, COLOR } from "../../../server/src/engine";
 import Show from "../utils/Show";
-import ErrorNorification from "../utils/ErrorNotification";
-import Modal, { ModalButton } from "../utils/Modal";
+import ErrorNorification from "../components/ErrorNotification";
+import Modal, { ModalButton } from "../components/Modal";
 
 const Home = () => {
   const navigate = useNavigate();

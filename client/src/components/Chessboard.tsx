@@ -30,7 +30,7 @@ import Chess, {
 } from "../../../server/src/engine";
 import { MouseEventHandler, useState } from "react";
 import Show from "../utils/Show";
-import useWindowSize from "../utils/useWindowSize";
+import useWindowSize from "../hooks/useWindowSize";
 
 const PIECES: Record<Color, Record<PieceType, string>> = {
   w: { p: wp, n: wn, b: wb, r: wr, q: wq, k: wk },

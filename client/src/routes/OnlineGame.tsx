@@ -2,13 +2,13 @@ import Chess, { COLOR, Move } from "../../../server/src/engine";
 import { useState, useEffect } from "react";
 import ChessBoard from "../components/Chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
-import useCopyToClipboard from "../utils/useCopyToClipboard";
+import useCopyToClipboard from "../hooks/useCopyToClipboard";
 
 import { socket } from "../utils/socket";
-import { CopyIcon } from "../utils/icons";
+import { CopyIcon } from "../components/icons";
 import Show from "../utils/Show";
-import ErrorNorification from "../utils/ErrorNotification";
-import Modal, { ModalButton } from "../utils/Modal";
+import ErrorNorification from "../components/ErrorNotification";
+import Modal, { ModalButton } from "../components/Modal";
 
 const Game = () => {
   const navigate = useNavigate();
