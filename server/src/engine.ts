@@ -979,6 +979,9 @@ export default class Chess {
     this._processBoardState(true);
   }
 
+  // TODO:
+  redo() { }
+
   getTurn() {
     return this._turn;
   }
