@@ -68,6 +68,7 @@ export const MOVE_FLAGS = Object.freeze({
 export type MoveFlag = (typeof MOVE_FLAGS)[keyof typeof MOVE_FLAGS];
 
 export type InternalMove = {
+  piece: Piece;
   from: Square;
   to: Square;
   promotion?: PiecePromotionType;
@@ -341,6 +342,7 @@ function generatePawnMoves(
 
     PIECE_PROMOTION.forEach((piece) =>
       moves.push({
+        piece: { type: PIECE.PAWN, color },
         from: fromAlgebraic,
         to: toAlgebraic,
         promotion: piece,
@@ -357,6 +359,7 @@ function generatePawnMoves(
       generatePromotionMoves(position, nextPosition, MOVE_FLAGS.NORMAL);
     else {
       moves.push({
+        piece: { type: PIECE.PAWN, color },
         from: algebraic(position),
         to: algebraic(nextPosition),
         flags: MOVE_FLAGS.NORMAL,
@@ -367,6 +370,7 @@ function generatePawnMoves(
 
         if (board[jumpPosition] == null)
           moves.push({
+            piece: { type: PIECE.PAWN, color },
             from: algebraic(position),
             to: algebraic(jumpPosition),
             flags: MOVE_FLAGS.PAWN_JUMP,
@@ -390,6 +394,7 @@ function generatePawnMoves(
         generatePromotionMoves(position, attackPosition, MOVE_FLAGS.CAPTURE);
       else
         moves.push({
+          piece: { type: PIECE.PAWN, color },
           from: algebraic(position),
           to: algebraic(attackPosition),
           flags: isPiece ? MOVE_FLAGS.CAPTURE : MOVE_FLAGS.EN_PASSANT,
@@ -423,12 +428,14 @@ export function generatePieceMoves(
 
       if (attackedPiece == null)
         moves.push({
+          piece,
           from: algebraic(position),
           to: algebraic(nextPosition),
           flags: MOVE_FLAGS.NORMAL,
         });
       else if (attackedPiece.color != piece.color)
         moves.push({
+          piece,
           from: algebraic(position),
           to: algebraic(nextPosition),
           flags: MOVE_FLAGS.CAPTURE,
@@ -451,6 +458,7 @@ export function generatePieceMoves(
 
         if (attackedPiece == null) {
           moves.push({
+            piece,
             from: algebraic(position),
             to: algebraic(nextPosition),
             flags: MOVE_FLAGS.NORMAL,
@@ -463,6 +471,7 @@ export function generatePieceMoves(
 
         if (attackedPiece.color != piece.color)
           moves.push({
+            piece,
             from: algebraic(position),
             to: algebraic(nextPosition),
             flags: MOVE_FLAGS.CAPTURE,
@@ -570,6 +579,7 @@ export default class Chess {
         canCastleThrough(kingsKnightPosition, otherColor)
       )
         this._moves.push({
+          piece: { type: PIECE.KING, color },
           from: algebraic(kingPosition),
           to: algebraic(kingsKnightPosition),
           flags: MOVE_FLAGS.K_CASTLE,
@@ -582,6 +592,7 @@ export default class Chess {
         canCastleThrough(queensKnightPosition, otherColor)
       )
         this._moves.push({
+          piece: { type: PIECE.KING, color },
           from: algebraic(kingPosition),
           to: algebraic(queensBishopPosition),
           flags: MOVE_FLAGS.Q_CASTLE,
@@ -762,10 +773,11 @@ export default class Chess {
     const myColor = this._turn;
     const theirColor = swapColor(this._turn);
 
-    this._history.push({
-      fen: this.getFEN(),
-      san: this._generateSan(move),
-    });
+    if (this._enableProcessMoves)
+      this._history.push({
+        fen: this.getFEN(),
+        san: this._generateSan(move),
+      });
 
     this._board[squareIndex(move.to)] =
       move.flags & MOVE_FLAGS.PROMOTION
@@ -773,7 +785,7 @@ export default class Chess {
           type: move.promotion as PieceType,
           color: myColor,
         }
-        : this._board[squareIndex(move.from)];
+        : move.piece;
     this._board[squareIndex(move.from)] = null;
     let keepEpSquare = false;
 
@@ -830,9 +842,54 @@ export default class Chess {
     this._processBoardState();
   }
 
-  // TODO: implement
+  private _sanDisambiguator(ambiguousMove: InternalMove) {
+    let ambiguities = 0,
+      sameFile = 0,
+      sameRank = 0;
+
+    this._moves.forEach((move) => {
+      if (
+        move.piece.type == ambiguousMove.piece.type &&
+        move.piece.color == ambiguousMove.piece.color &&
+        move.to == ambiguousMove.to &&
+        move.from != ambiguousMove.from
+      ) {
+        ambiguities++;
+        if (move.from[1] == ambiguousMove.from[1]) sameRank++;
+        if (move.from[0] == ambiguousMove.from[0]) sameFile++;
+      }
+    });
+
+    let disambiguated = "";
+
+    if (sameRank * sameFile > 0) disambiguated = ambiguousMove.from;
+    else if (sameFile > 0) disambiguated = ambiguousMove.from[1];
+    else if (sameRank > 0) disambiguated = ambiguousMove.from[0];
+    else if (ambiguities > 0) disambiguated = ambiguousMove.from[0];
+
+    return disambiguated;
+  }
+
   private _generateSan(move: InternalMove) {
-    return `${move.from} ${move.to}`;
+    const pieceType =
+      move.piece.type == PIECE.PAWN ? "" : move.piece.type.toUpperCase();
+    let san = "";
+
+    if (move.flags & MOVE_FLAGS.K_CASTLE) san = "O-O";
+    else if (move.flags & MOVE_FLAGS.Q_CASTLE) san = "O-O-O";
+    else if (move.flags & MOVE_FLAGS.CAPTURE)
+      san = pieceType + this._sanDisambiguator(move) + "x" + move.to;
+    else san = pieceType + this._sanDisambiguator(move) + move.to;
+
+    if (move.promotion) san += `= ${move.promotion.toUpperCase()} `;
+
+    const chess = Chess._load(this.getFEN(), false);
+    chess._makeMove(move);
+
+    if (chess.isCheckMate()) san += "#";
+    else if (chess.isCheck()) san += "+";
+
+    return san;
   }
 
   makeMove(move: Move) {

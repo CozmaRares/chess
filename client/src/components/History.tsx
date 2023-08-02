@@ -16,13 +16,31 @@ const History: React.FC<{
         const bg = idk % 2 == 0 ? "bg-zinc-600" : "";
 
         if (idx % 2 == 0)
-            history.push(<span className={`px-2 ${bg}`}>{idk}.</span>);
-        history.push(<span className={bg}>{san}</span>);
+            history.push(
+                <span key={idx} className={`px-2 ${bg}`}>
+                    {idk}.
+                </span>
+            );
+        history.push(
+            <span key={idx + san} className={bg}>
+                {san}
+            </span>
+        );
     });
 
+    if (history.length % 3)
+        history.push(
+            <span
+                key="__history-last__"
+                className={((history.length + 1) / 3) % 2 == 0 ? "bg-zinc-600" : ""}
+            ></span>
+        );
+
     return (
-        <div className="bg-zinc-800 rounded-lg text-white grid grid-rows-[1fr,auto]">
-            <div className="p-4 min-w-[10rem] h-fit max-h-full overflow-auto grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md">
+        <div className="bg-zinc-800 rounded-lg text-white grid grid-rows-[auto,1fr,auto]">
+            <div className="text-xl text-center my-1 mx-4 border-b ">History</div>
+            {/* FIX: scroll*/}
+            <div className="p-4 min-w-[10rem] h-fit overflow-scroll grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md">
                 {history}
             </div>
             <div className="bg-black grid auto-cols-fr grid-flow-col gap-5 p-4 rounded-b-lg">
