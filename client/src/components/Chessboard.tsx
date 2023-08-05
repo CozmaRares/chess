@@ -27,9 +27,13 @@ import Chess, {
   MOVE_FLAGS,
   PIECE_PROMOTION,
   PiecePromotionType,
+  COLOR,
+  swapColor,
 } from "../../../server/src/engine";
-import { MouseEventHandler, useState } from "react";
+import { MouseEventHandler, ReactNode, useState } from "react";
 import Show from "../utils/Show";
+import InferProps from "../utils/InferProps";
+import { Crown, HalfStar, Hashtag } from "./icons";
 
 const PIECES: Record<Color, Record<PieceType, string>> = {
   w: { p: wp, n: wn, b: wb, r: wr, q: wq, k: wk },
@@ -46,22 +50,36 @@ const ChessBoard: React.FC<{
     (Pick<Move, "from" | "to"> & { color: Color }) | null
   >(null);
 
-  const tileProps = new Array(64).fill(null).map((_, i) => ({
-    tileNumber: i,
-    piece: chess.getPiece(i),
-    isAttacked: false,
-    isPromotion: false,
-    isActive: false,
-  }));
+  const tileProps: Array<InferProps<[typeof Tile]> & { isPromotion: boolean }> =
+    new Array(64).fill(null).map((_, i) => ({
+      tileNumber: i,
+      piece: chess.getPiece(i),
+      isAttacked: false,
+      isPromotion: false,
+      isActive: false,
+      EndGameIcon: undefined,
+    }));
 
   if (activeTile != -1) {
     tileProps[activeTile].isActive = true;
-    chess.getMovesForSquare(algebraic(activeTile)).forEach(({ to, flags }) => {
+    chess.getMovesForSquare(activeTile).forEach(({ to, flags }) => {
       const square = squareIndex(to);
       tileProps[square].isAttacked = true;
-      tileProps[square].isPromotion =
-        flags & MOVE_FLAGS.PROMOTION ? true : false;
+      tileProps[square].isPromotion = (flags & MOVE_FLAGS.PROMOTION) != 0;
     });
+  }
+
+  if (chess.isGameOver()) {
+    const kings = chess.getKings();
+    if (chess.isDraw()) {
+      tileProps[kings[COLOR.BLACK]].EndGameIcon = <HalfStar />;
+      tileProps[kings[COLOR.WHITE]].EndGameIcon = <HalfStar />;
+    } else {
+      const loser = chess.getTurn(),
+        winner = swapColor(loser);
+      tileProps[kings[winner]].EndGameIcon = <Crown />;
+      tileProps[kings[loser]].EndGameIcon = <Hashtag />;
+    }
   }
 
   const tiles = tileProps.map((props, i) => (
@@ -84,7 +102,7 @@ const ChessBoard: React.FC<{
 
       if (tileProps[tile].isPromotion) return setPromotionMove(moveObj);
 
-      makeMove(moveObj);
+      makeMove({ to: moveObj.to, from: moveObj.from });
       setActiveTile(-1);
       return;
     }
@@ -158,57 +176,70 @@ const Tile: React.FC<{
   isActive: boolean;
   isAttacked: boolean;
   blackPerspective?: boolean;
-}> = ({ tileNumber, piece, isActive, isAttacked, blackPerspective }) => {
-  const color = squareColor(tileNumber);
+  EndGameIcon?: ReactNode;
+}> = ({
+  tileNumber,
+  piece,
+  isActive,
+  isAttacked,
+  blackPerspective,
+  EndGameIcon,
+}) => {
+    const color = squareColor(tileNumber);
 
-  const { bg: bgColor, text: textColor } = TILE_COLORS[color];
-  const activeColor = TILE_COLORS[color].active;
+    const { bg: bgColor, text: textColor } = TILE_COLORS[color];
+    const activeColor = TILE_COLORS[color].active;
 
-  const tileFile = file(tileNumber);
-  const tileRank = rank(tileNumber);
-  const square = algebraic(tileNumber);
+    const tileFile = file(tileNumber);
+    const tileRank = rank(tileNumber);
+    const square = algebraic(tileNumber);
 
-  const isFirstColumn = tileFile == (blackPerspective ? FILE.H : FILE.A);
-  const isLastRow = tileRank == (blackPerspective ? RANK.EIGHTH : RANK.FIRST);
+    const isFirstColumn = tileFile == (blackPerspective ? FILE.H : FILE.A);
+    const isLastRow = tileRank == (blackPerspective ? RANK.EIGHTH : RANK.FIRST);
 
-  return (
-    <div
-      className={[
-        "relative aspect-square font-bold text-xl isolate group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-4 -outline-offset-4",
-        isActive ? activeColor : bgColor,
-        piece ? "cursor-pointer" : "",
-      ].join(" ")}
-      data-tile={tileNumber}
-    >
-      {/* HACK: image width causes issues, will work as long as ChessUI's height and ChessBoard's border aren't modified */}
-      {piece && (
-        <img
-          src={PIECES[piece.color][piece.type]}
-          className="max-w-[calc(80vmin/8-12px)]"
-        />
-      )}
-      <Show when={isAttacked}>
-        <Show
-          when={piece == null}
-          fallback={
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-full aspect-square border-8 border-gray-900/40 rounded-full"></div>
-          }
-        >
-          <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-[35%] aspect-square bg-gray-900/40 rounded-full group-hover:w-[45%]"></div>
+    return (
+      <div
+        className={[
+          "relative aspect-square font-bold text-xl group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-4 -outline-offset-4",
+          isActive ? activeColor : bgColor,
+          piece ? "cursor-pointer" : "",
+        ].join(" ")}
+        data-tile={tileNumber}
+      >
+        {/* HACK: image width causes issues, will work as long as ChessUI's height and ChessBoard's border aren't modified */}
+        {piece && (
+          <img
+            src={PIECES[piece.color][piece.type]}
+            className="max-w-[calc(80vmin/8-12px)]"
+          />
+        )}
+        <Show when={EndGameIcon != undefined}>
+          <div className="absolute top-0 left-full -translate-x-1/2 -translate-y-1/2 bg-white z-10 rounded-full p-1 shadow-lg shadow-black aspect-square flex justify-center items-center">
+            {EndGameIcon}
+          </div>
         </Show>
-      </Show>
-      <Show when={isFirstColumn}>
-        <div className={`absolute top-1 left-1 -z-10 ${textColor}`}>
-          {square[1]}
-        </div>
-      </Show>
-      <Show when={isLastRow}>
-        <div className={`absolute bottom-1 right-1 -z-10 ${textColor}`}>
-          {square[0]}
-        </div>
-      </Show>
-    </div>
-  );
-};
+        <Show when={isAttacked}>
+          <Show
+            when={piece == null}
+            fallback={
+              <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-full aspect-square border-8 border-gray-900/40 rounded-full"></div>
+            }
+          >
+            <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-[35%] aspect-square bg-gray-900/40 rounded-full group-hover:w-[45%]"></div>
+          </Show>
+        </Show>
+        <Show when={isFirstColumn}>
+          <div className={`absolute top-1 left-1 -z-10 ${textColor}`}>
+            {square[1]}
+          </div>
+        </Show>
+        <Show when={isLastRow}>
+          <div className={`absolute bottom-1 right-1 -z-10 ${textColor}`}>
+            {square[0]}
+          </div>
+        </Show>
+      </div>
+    );
+  };
 
 export default ChessBoard;

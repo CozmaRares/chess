@@ -10,10 +10,6 @@ export const PIECE = Object.freeze({
   KING: "k",
 } as const);
 
-function isPieceValid(string: string): boolean {
-  return (Object.values(PIECE) as Array<string>).includes(string);
-}
-
 export const PIECE_PROMOTION = Object.freeze([
   PIECE.KNIGHT,
   PIECE.BISHOP,
@@ -34,10 +30,10 @@ export type Piece = {
   color: Color;
 };
 
-export type Board = Array<Piece | null>;
+type Board = Array<Piece | null>;
 
 // prettier-ignore
-export const SQUARES = Object.freeze([
+const SQUARES = Object.freeze([
   'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8',
   'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7',
   'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6',
@@ -48,10 +44,10 @@ export const SQUARES = Object.freeze([
   'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
 ] as const);
 
-const EN_PASSANT_ATTACK_SQUARES = {
+const EN_PASSANT_ATTACK_SQUARES = Object.freeze({
   w: ["a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6"],
   b: ["a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3"],
-};
+});
 
 export const EMPTY_SQUARE = "-";
 export type Square = (typeof SQUARES)[number] | typeof EMPTY_SQUARE;
@@ -64,8 +60,7 @@ export const MOVE_FLAGS = Object.freeze({
   PAWN_JUMP: 0b0010000,
   PROMOTION: 0b0100000,
   EN_PASSANT: 0b1000000,
-} as const);
-export type MoveFlag = (typeof MOVE_FLAGS)[keyof typeof MOVE_FLAGS];
+});
 
 export type InternalMove = {
   piece: Piece;
@@ -76,51 +71,41 @@ export type InternalMove = {
 };
 export type Move = Pick<InternalMove, "from" | "to" | "promotion">;
 
-export const PIECE_MASKS: Record<PieceType, number> = Object.freeze({
-  p: 0b000001,
-  n: 0b000010,
-  b: 0b000100,
-  r: 0b001000,
-  q: 0b010000,
-  k: 0b100000,
-} as const);
+const COLOR_MASKS: Record<Color, number> = Object.freeze({ w: 0b01, b: 0b10 });
 
-export const COLOR_MASKS: Record<Color, number> = Object.freeze({
-  w: 0b01,
-  b: 0b10,
-} as const);
+export function rank(square: Square | number): number {
+  square = squareIndex(square);
+  return square >> 3;
+}
 
-export function rank(squareIdx: number): number {
-  return squareIdx >> 3;
+export function file(square: Square | number): number {
+  square = squareIndex(square);
+  return square & 0b111;
 }
 
 export const RANK = Object.freeze({
-  FIRST: 7,
-  SECOND: 6,
-  THIRD: 5,
-  FORTH: 4,
-  FIFTH: 3,
-  SIXTH: 2,
-  SEVENTH: 1,
-  EIGHTH: 0,
+  FIRST: rank("a1"),
+  SECOND: rank("a2"),
+  THIRD: rank("a3"),
+  FORTH: rank("a4"),
+  FIFTH: rank("a5"),
+  SIXTH: rank("a6"),
+  SEVENTH: rank("a7"),
+  EIGHTH: rank("a8"),
 } as const);
 
-export function file(squareIdx: number): number {
-  return squareIdx & 0b111;
-}
-
 export const FILE: Record<string, number> = Object.freeze({
-  A: 0,
-  B: 1,
-  C: 2,
-  D: 3,
-  E: 4,
-  F: 5,
-  G: 6,
-  H: 7,
-});
+  A: file("a1"),
+  B: file("b1"),
+  C: file("c1"),
+  D: file("d1"),
+  E: file("e1"),
+  F: file("f1"),
+  G: file("g1"),
+  H: file("h1"),
+} as const);
 
-export function isDigit(c: string): boolean {
+function isDigit(c: string): boolean {
   return /^\d$/.test(c);
 }
 
@@ -138,7 +123,14 @@ export function squareIndex(square: string | number): number {
   return rankNum * 8 + fileNum;
 }
 
-export function algebraic(square: number): Square {
+export function algebraic(square: string | number): Square {
+  if (typeof square == "string")
+    return (SQUARES as Readonly<Array<string>>).includes(square)
+      ? (square as Square)
+      : EMPTY_SQUARE;
+
+  if (square < 0 || square > 63) return EMPTY_SQUARE;
+
   const f = file(square);
   const r = rank(square);
   return ("abcdefgh"[f] + "87654321"[r]) as Square;
@@ -199,7 +191,11 @@ export function validateFEN(fen: string): void {
           return;
         }
 
-        if (!isPieceValid(symbol.toLowerCase()))
+        if (
+          !(Object.values(PIECE) as Array<string>).includes(
+            symbol.toLowerCase()
+          )
+        )
           throw new Error(
             "Invalid FEN - board position contains an invalid piece symbol: " +
             symbol
@@ -336,11 +332,7 @@ function generatePawnMoves(
 
   const moves: Array<InternalMove> = [];
 
-  const generatePromotionMoves = (
-    from: number,
-    to: number,
-    flag?: MoveFlag
-  ) => {
+  const generatePromotionMoves = (from: number, to: number, flag?: number) => {
     const fromAlgebraic = algebraic(from);
     const toAlgebraic = algebraic(to);
 
@@ -401,14 +393,14 @@ function generatePawnMoves(
           piece: { type: PIECE.PAWN, color },
           from: algebraic(position),
           to: algebraic(attackPosition),
-          flags: isPiece ? MOVE_FLAGS.CAPTURE : MOVE_FLAGS.EN_PASSANT,
+          flags: MOVE_FLAGS.CAPTURE | (isPiece ? 0 : MOVE_FLAGS.EN_PASSANT),
         });
   });
 
   return moves;
 }
 
-export function generatePieceMoves(
+function generatePieceMoves(
   position: number,
   piece: Piece,
   board: Readonly<Board>,
@@ -516,8 +508,9 @@ export default class Chess {
   private _moves: Array<InternalMove> = [];
   private _attacks: Array<number> = [];
   private _history: Array<Readonly<{ fen: string; san: string }>> = [];
-  private _enableProcessMoves = true;
   private _boardPositionCounter = new Map<string, number>();
+  private _enableProcessMoves = true;
+  private _enableHistory = true;
 
   private constructor(
     board: Board,
@@ -527,7 +520,8 @@ export default class Chess {
     halfMoves: number,
     fullMoves: number,
     kings: Record<Color, number>,
-    enableProcessMoves: boolean
+    enableProcessMoves: boolean,
+    enableHistory: boolean
   ) {
     this._board = board;
     this._turn = turn;
@@ -537,6 +531,7 @@ export default class Chess {
     this._fullMoves = fullMoves;
     this._kings = kings;
     this._enableProcessMoves = enableProcessMoves;
+    this._enableHistory = enableHistory;
     this._processBoardState();
   }
 
@@ -621,7 +616,13 @@ export default class Chess {
     if (!undo) this._modifyPositionCounter(false);
   }
 
-  private static _load(fen: string, enableProcessMoves: boolean) {
+  private static _load(
+    fen: string,
+    {
+      enableProcessMoves,
+      enableHistory,
+    }: { enableProcessMoves: boolean; enableHistory: boolean }
+  ) {
     validateFEN(fen);
 
     const builder = new Chess.Builder();
@@ -651,22 +652,13 @@ export default class Chess {
     builder.setFullMoves(fields[5]);
 
     if (enableProcessMoves == false) builder.disableComputeMoves();
+    if (enableHistory == false) builder.disableHistory();
 
     return builder.build();
   }
 
   static load(fen = DEFAULT_POSITION) {
-    return this._load(fen, true);
-  }
-
-  reset() {
-    const chess = Chess.load();
-    this._board = chess._board;
-    this._turn = chess._turn;
-    this._castling = chess._castling;
-    this._enPassant = chess._enPassant;
-    this._halfMoves = chess._halfMoves;
-    this._fullMoves = chess._fullMoves;
+    return this._load(fen, { enableProcessMoves: true, enableHistory: true });
   }
 
   getFEN(trim = false) {
@@ -723,30 +715,6 @@ export default class Chess {
     return square < 0 || square > 63 ? null : this._board[square];
   }
 
-  toAscii() {
-    let str = "";
-
-    for (let i = 0; i < 64; i++) {
-      if (i % 8 == 0) str += `\n${8 - Math.floor(i / 8)}`;
-
-      const piece = this.getPiece(i);
-
-      if (piece == null) {
-        str += " .";
-        continue;
-      }
-
-      const pieceLetter =
-        piece.color == COLOR.BLACK
-          ? piece.type.toLowerCase()
-          : piece.type.toUpperCase();
-      str += ` ${pieceLetter}`;
-    }
-
-    str += "\n  A B C D E F G H";
-    return str;
-  }
-
   getMoves(): Array<InternalMove> {
     return this._moves;
   }
@@ -763,13 +731,17 @@ export default class Chess {
   private _processMoves() {
     const currentFEN = this.getFEN();
     this._moves = this._moves.filter((move) => {
-      const chess = Chess._load(currentFEN, false);
+      const chess = Chess._load(currentFEN, {
+        enableProcessMoves: false,
+        enableHistory: false,
+      });
       chess._makeMove(move);
       return !chess._isKingAttacked(this._turn);
     }, this);
   }
 
-  getMovesForSquare(square: Square): Array<InternalMove> {
+  getMovesForSquare(square: Square | number): Array<InternalMove> {
+    square = algebraic(square);
     return this._moves.filter(({ from }) => from == square);
   }
 
@@ -777,7 +749,7 @@ export default class Chess {
     const myColor = this._turn;
     const theirColor = swapColor(this._turn);
 
-    if (this._enableProcessMoves)
+    if (this._enableHistory)
       this._history.push({
         fen: this.getFEN(),
         san: this._generateSan(move),
@@ -832,10 +804,7 @@ export default class Chess {
 
     if (piece == PIECE.KING) this._kings[myColor] = squareIndex(move.to);
 
-    if (
-      piece == PIECE.PAWN ||
-      move.flags & (MOVE_FLAGS.CAPTURE | MOVE_FLAGS.EN_PASSANT)
-    )
+    if (piece == PIECE.PAWN || move.flags & MOVE_FLAGS.CAPTURE)
       this._halfMoves = 0;
     else this._halfMoves++;
 
@@ -887,7 +856,10 @@ export default class Chess {
 
     if (move.promotion) san += `=${move.promotion.toUpperCase()}`;
 
-    const chess = Chess._load(this.getFEN(), false);
+    const chess = Chess._load(this.getFEN(), {
+      enableProcessMoves: true,
+      enableHistory: false,
+    });
     chess._makeMove(move);
 
     if (chess.isCheckMate()) san += "#";
@@ -1011,9 +983,13 @@ export default class Chess {
     return this._getPositionCounter() >= 3;
   }
 
+  is50Rule() {
+    return this._halfMoves >= 100; // 50 moves per side = 100 half moves
+  }
+
   isDraw() {
     return (
-      this._halfMoves >= 100 || // 50 moves per side = 100 half moves
+      this.is50Rule() ||
       this.isStalemate() ||
       this.isInsufficientMaterial() ||
       this.isThreefoldRepetition()
@@ -1029,7 +1005,10 @@ export default class Chess {
     const lastHistory = this._history.pop();
     if (lastHistory == undefined) return;
 
-    const chess = Chess._load(lastHistory.fen, this._enableProcessMoves);
+    const chess = Chess._load(lastHistory.fen, {
+      enableProcessMoves: false,
+      enableHistory: false,
+    });
     this._board = chess._board;
     this._turn = chess._turn;
     this._castling = chess._castling;
@@ -1051,6 +1030,10 @@ export default class Chess {
     return this._history;
   }
 
+  getKings(): Readonly<Record<Color, number>> {
+    return this._kings;
+  }
+
   static Builder = class {
     private _board: Board = new Array(64).fill(null);
     private _turn: Color = COLOR.WHITE;
@@ -1060,9 +1043,10 @@ export default class Chess {
     private _fullMoves: number = 1;
     private _kings: Record<Color, number> = { w: 0, b: 0 };
     private _enableProcessMoves = true;
+    private _enableHistory = true;
 
     addPiece(square: Square | number, piece: Piece) {
-      if (typeof square != "number") square = squareIndex(square);
+      square = squareIndex(square);
       if (square < 0 || square > 63) return;
       this._board[square] = piece;
       if (piece.type == PIECE.KING) this._kings[piece.color] = square;
@@ -1097,6 +1081,10 @@ export default class Chess {
       this._enableProcessMoves = false;
     }
 
+    disableHistory() {
+      this._enableHistory = false;
+    }
+
     build() {
       return new Chess(
         this._board,
@@ -1106,11 +1094,11 @@ export default class Chess {
         this._halfMoves,
         this._fullMoves,
         this._kings,
-        this._enableProcessMoves
+        this._enableProcessMoves,
+        this._enableHistory
       );
     }
   };
 }
 
-// FIX: tests
 // TODO: add missing tests for features

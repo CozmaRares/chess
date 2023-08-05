@@ -4,6 +4,7 @@ import { Color, COLOR } from "../../../server/src/engine";
 import Show from "../utils/Show";
 import ErrorNorification from "../components/ErrorNotification";
 import Modal, { ModalButton } from "../components/Modal";
+import { removeLocationState } from "../utils/utils";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -52,9 +53,6 @@ const Home = () => {
         setJoin(false);
       });
   };
-
-  const removeLocationState = () =>
-    window.history.replaceState({ state: null }, document.title);
 
   const errObj = err?.message
     ? {

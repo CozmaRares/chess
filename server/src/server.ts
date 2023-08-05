@@ -92,7 +92,7 @@ io.on("connection", (socket) => {
 });
 
 if (process.env.NODE_ENV === "development")
-  app.get("/games", (_req, res) => {
+  app.get("/debug/games", (_req, res) => {
     const m = new Map();
     rooms.forEach((room, id) =>
       m.set(id, {

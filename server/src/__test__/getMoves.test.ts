@@ -568,7 +568,11 @@ describe("en passant", () => {
         square: "d5",
         moves: [
           { from: "d5", to: "d6", flags: MOVE_FLAGS.NORMAL },
-          { from: "d5", to: "e6", flags: MOVE_FLAGS.EN_PASSANT },
+          {
+            from: "d5",
+            to: "e6",
+            flags: MOVE_FLAGS.CAPTURE | MOVE_FLAGS.EN_PASSANT,
+          },
         ],
       },
     ],

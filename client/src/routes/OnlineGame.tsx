@@ -9,6 +9,7 @@ import Show from "../utils/Show";
 import ErrorNorification from "../components/ErrorNotification";
 import Modal, { ModalButton } from "../components/Modal";
 import ChessUI from "../components/ChessUI";
+import { removeLocationState } from "../utils/utils";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -26,15 +27,13 @@ const Game = () => {
   const makeMove = (move: Move) => socket.emit("make move", id, move);
 
   useEffect(() => {
-    if (id == undefined || color == undefined)
-      return navigate("/", {
-        state: { error: "Did not receive a game ID or color." },
-      });
+    if (id == undefined || color == undefined) return navigate("/");
 
     socket.connect();
 
     socket.on("connect", () => {
       socket.emit("join game", id, color);
+      removeLocationState();
     });
 
     socket.on("join error", () => {
@@ -62,6 +61,13 @@ const Game = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (opponentDisconnect)
+      navigate("/", {
+        state: { error: "Opponent disconnected" },
+      });
+  }, [opponentDisconnect]);
+
   return (
     <Show when={game} fallback={<Waiting id={id} />}>
       <ErrorNorification
@@ -75,24 +81,6 @@ const Game = () => {
         blackPerspective={color === COLOR.BLACK}
         disabled={color !== chess.getTurn()}
       />
-      <Show when={opponentDisconnect || chess.isGameOver()}>
-        <Modal enableOverlay>
-          <div className="text-center w-50 max-w-full">
-            <h2 className="text-2xl mb-2">Game Over</h2>
-            <h1 className="text-lg font-bold">
-              {opponentDisconnect
-                ? "Opponent disconnected..."
-                : chess.isCheckMate()
-                  ? (chess.getTurn() == color ? "Opponent" : "You") + " won!"
-                  : "It's a draw!"}
-            </h1>
-            <div className="w-full h-[4px] rounded-b-lg bg-white mb-4"></div>
-            <ModalButton onClick={() => navigate("/")}>
-              Go to main page
-            </ModalButton>
-          </div>
-        </Modal>
-      </Show>
     </Show>
   );
 };
