@@ -881,7 +881,7 @@ export default class Chess {
       san = pieceType + this._sanDisambiguator(move) + "x" + move.to;
     else san = pieceType + this._sanDisambiguator(move) + move.to;
 
-    if (move.promotion) san += `= ${move.promotion.toUpperCase()} `;
+    if (move.promotion) san += `=${move.promotion.toUpperCase()}`;
 
     const chess = Chess._load(this.getFEN(), false);
     chess._makeMove(move);

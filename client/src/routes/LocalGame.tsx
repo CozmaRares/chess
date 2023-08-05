@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Chess, { Move } from "../../../server/src/engine";
-import ChessBoard from "../components/Chessboard";
-import History from "../components/History";
+import ChessUI from "../components/ChessUI";
 
 const LocalGame = () => {
     const [chess, setChess] = useState(Chess.load());
@@ -27,20 +26,15 @@ const LocalGame = () => {
     };
 
     return (
-        <div className="mt-4 flex flex-row gap-4 justify-center">
-            <ChessBoard
-                chess={chess}
-                makeMove={makeMove}
-                blackPerspective={blackPerspective}
-            />
-            <History
-                chess={chess}
-                newGame={newGame}
-                switchSides={switchSides}
-                undo={undo}
-                redo={redo}
-            />
-        </div>
+        <ChessUI
+            chess={chess}
+            makeMove={makeMove}
+            blackPerspective={blackPerspective}
+            newGame={newGame}
+            switchSides={switchSides}
+            undo={undo}
+            redo={redo}
+        />
     );
 };
 

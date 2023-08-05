@@ -30,7 +30,6 @@ import Chess, {
 } from "../../../server/src/engine";
 import { MouseEventHandler, useState } from "react";
 import Show from "../utils/Show";
-import useWindowSize from "../hooks/useWindowSize";
 
 const PIECES: Record<Color, Record<PieceType, string>> = {
   w: { p: wp, n: wn, b: wb, r: wr, q: wq, k: wk },
@@ -42,13 +41,10 @@ const ChessBoard: React.FC<{
   blackPerspective?: boolean;
   disabled?: boolean;
 }> = ({ chess, makeMove, blackPerspective, disabled }) => {
-  const { width, height } = useWindowSize();
   const [activeTile, setActiveTile] = useState<number>(-1);
   const [promotionMove, setPromotionMove] = useState<
     (Pick<Move, "from" | "to"> & { color: Color }) | null
   >(null);
-
-  const gridSize = Math.min(width, height, 800);
 
   const tileProps = new Array(64).fill(null).map((_, i) => ({
     tileNumber: i,
@@ -112,34 +108,32 @@ const ChessBoard: React.FC<{
     setActiveTile(-1);
   };
 
+  // FIX: border
   return (
     <>
-      <div className="relative w-fit h-fit max-w-full isolate border-[6px] border-black rounded-lg peer">
+      <div className="relative aspect-square isolate border-[6px] border-black rounded-lg">
         <div
-          className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-w-full"
+          className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-h-full"
           onClick={handleClick}
-          style={{ width: `${gridSize}px` }}
         >
-          {blackPerspective == true ? tiles.reverse() : tiles}
+          {blackPerspective ? tiles.reverse() : tiles}
         </div>
-        {promotionMove == null ? (
-          <></>
-        ) : (
-          <>
-            <div className="absolute top-0 left-0 right-0 bottom-0 bg-red-50 bg-opacity-50 peer-default:pointer-events-none"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2 gap-1 bg-black bg-opacity-80 rounded-2xl p-2 z-10">
-              {PIECE_PROMOTION.map((p) => (
-                <img
-                  key={p}
-                  src={PIECES[promotionMove.color][p]}
-                  style={{ width: `${gridSize / 8}px`, aspectRatio: 1 }}
-                  onClick={() => sendPromotionMove(p)}
-                />
-              ))}
-            </div>
-          </>
-        )}
       </div>
+      {promotionMove && (
+        <>
+          <div className="absolute top-0 left-0 right-0 bottom-0 bg-red-50 bg-opacity-50 pointer-events-none z-10"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2 gap-1 bg-black bg-opacity-80 rounded-2xl p-2 z-20">
+            {PIECE_PROMOTION.map((p) => (
+              <img
+                key={p}
+                className="cursor-pointer"
+                src={PIECES[promotionMove.color][p]}
+                onClick={() => sendPromotionMove(p)}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 };
@@ -178,14 +172,15 @@ const Tile: React.FC<{
 
   return (
     <div
-      className={
-        "relative aspect-square font-bold text-xl isolate group [&>*]:pointer-events-none " +
-        (isActive ? activeColor : bgColor)
-      }
+      className={[
+        "relative aspect-square font-bold text-xl isolate group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-4 -outline-offset-4",
+        isActive ? activeColor : bgColor,
+        piece ? "cursor-pointer" : "",
+      ].join(" ")}
       data-tile={tileNumber}
     >
-      {piece == null ? <></> : <img src={PIECES[piece.color][piece.type]} />}
-      <Show when={isAttacked == true}>
+      {piece && <img src={PIECES[piece.color][piece.type]} />}
+      <Show when={isAttacked}>
         <Show
           when={piece == null}
           fallback={

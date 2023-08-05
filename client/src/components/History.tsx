@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import Chess from "../../../server/src/engine";
 import { CaretLeft, CaretRight, Plus, Repeat } from "../components/icons";
 
@@ -9,6 +9,13 @@ const History: React.FC<{
     undo?: () => void;
     redo?: () => void;
 }> = ({ chess, newGame, switchSides, undo, redo }) => {
+    const historyRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const div = historyRef.current as HTMLDivElement;
+        if (div) div.scrollTop = div.scrollHeight;
+    }, [chess.getHistory().length]);
+
     const history: ReactNode[] = [];
 
     chess.getHistory().forEach(({ san }, idx) => {
@@ -21,6 +28,7 @@ const History: React.FC<{
                     {idk}.
                 </span>
             );
+
         history.push(
             <span key={idx + san} className={bg}>
                 {san}
@@ -39,11 +47,13 @@ const History: React.FC<{
     return (
         <div className="bg-zinc-800 rounded-lg text-white grid grid-rows-[auto,1fr,auto]">
             <div className="text-xl text-center my-1 mx-4 border-b ">History</div>
-            {/* FIX: scroll*/}
-            <div className="p-4 min-w-[10rem] h-fit overflow-scroll grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md">
+            <div
+                ref={historyRef}
+                className="p-4 min-w-[13rem] h-fit max-h-full overflow-scroll grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md"
+            >
                 {history}
             </div>
-            <div className="bg-black grid auto-cols-fr grid-flow-col gap-5 p-4 rounded-b-lg">
+            <div className="bg-black grid auto-cols-fr grid-flow-col gap-5 p-4 rounded-b-lg empty:hidden">
                 {newGame && (
                     <Button title="New Game" onClick={newGame}>
                         <Plus />

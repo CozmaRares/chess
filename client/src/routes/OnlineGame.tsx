@@ -1,6 +1,5 @@
 import Chess, { COLOR, Move } from "../../../server/src/engine";
 import { useState, useEffect } from "react";
-import ChessBoard from "../components/Chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
 import useCopyToClipboard from "../hooks/useCopyToClipboard";
 
@@ -9,6 +8,7 @@ import { CopyIcon } from "../components/icons";
 import Show from "../utils/Show";
 import ErrorNorification from "../components/ErrorNotification";
 import Modal, { ModalButton } from "../components/Modal";
+import ChessUI from "../components/ChessUI";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -68,15 +68,13 @@ const Game = () => {
         error={err?.message}
         removeError={() => setErr(undefined)}
       />
-      {/* TODO: add taken pieces */}
-      <ChessBoard
+      <ChessUI
         key={chess.getFEN()}
         chess={chess}
         makeMove={makeMove}
         blackPerspective={color === COLOR.BLACK}
         disabled={color !== chess.getTurn()}
       />
-      {/* TODO: add history */}
       <Show when={opponentDisconnect || chess.isGameOver()}>
         <Modal enableOverlay>
           <div className="text-center w-50 max-w-full">
