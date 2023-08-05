@@ -9,7 +9,7 @@ const Modal: React.FC<{
   );
 
   return enableOverlay ? (
-    <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full flex justify-center items-center bg-zinc-800 bg-opacity-70">
+    <div className="absolute top-0 left-0 right-0 bottom-0 w-full h-full flex justify-center items-center bg-zinc-800/70">
       {modal}
     </div>
   ) : (

@@ -91,7 +91,11 @@ const ChessBoard: React.FC<{
 
     if (tileProps[tile].piece == null) return setActiveTile(-1);
 
-    setActiveTile(tile == activeTile ? -1 : tile);
+    if (tile == activeTile) return setActiveTile(-1);
+
+    setActiveTile(
+      chess.getMovesForSquare(algebraic(tile)).length == 0 ? -1 : tile
+    );
   };
 
   const sendPromotionMove = (promotion: PiecePromotionType) => {
@@ -108,21 +112,18 @@ const ChessBoard: React.FC<{
     setActiveTile(-1);
   };
 
-  // FIX: border
   return (
-    <>
-      <div className="relative aspect-square isolate border-[6px] border-black rounded-lg">
-        <div
-          className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-h-full"
-          onClick={handleClick}
-        >
-          {blackPerspective ? tiles.reverse() : tiles}
-        </div>
+    <div className="relative aspect-square isolate border-[6px] border-black rounded-lg">
+      <div
+        className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-h-full"
+        onClick={handleClick}
+      >
+        {blackPerspective ? tiles.reverse() : tiles}
       </div>
       {promotionMove && (
         <>
-          <div className="absolute top-0 left-0 right-0 bottom-0 bg-red-50 bg-opacity-50 pointer-events-none z-10"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 grid-rows-2 gap-1 bg-black bg-opacity-80 rounded-2xl p-2 z-20">
+          <div className="absolute top-0 left-0 right-0 bottom-0 bg-red-50/50 pointer-events-none z-10"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/5 grid grid-cols-2 grid-rows-2 gap-1 bg-black/80 rounded-2xl p-2 z-20">
             {PIECE_PROMOTION.map((p) => (
               <img
                 key={p}
@@ -134,7 +135,7 @@ const ChessBoard: React.FC<{
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 
@@ -179,7 +180,13 @@ const Tile: React.FC<{
       ].join(" ")}
       data-tile={tileNumber}
     >
-      {piece && <img src={PIECES[piece.color][piece.type]} />}
+      {/* HACK: image width causes issues, will work as long as ChessUI's height and ChessBoard's border aren't modified */}
+      {piece && (
+        <img
+          src={PIECES[piece.color][piece.type]}
+          className="max-w-[calc(80vmin/8-12px)]"
+        />
+      )}
       <Show when={isAttacked}>
         <Show
           when={piece == null}

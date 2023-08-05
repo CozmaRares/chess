@@ -77,7 +77,7 @@ const Home = () => {
             </ModalButton>
             <ModalButton onClick={() => setJoin(true)}>Join Game</ModalButton>
             <ModalButton onClick={() => navigate("/game/local")}>
-              Play locally
+              Local Game
             </ModalButton>
           </Modal>
         </div>
