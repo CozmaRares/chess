@@ -1,28 +1,52 @@
 import { describe, expect, test } from "vitest";
-import Chess, { InternalMove, MOVE_FLAGS, Square } from "../engine";
+import Chess, {
+  COLOR,
+  Color,
+  InternalMove,
+  MOVE_FLAGS,
+  Square,
+} from "../engine";
+
+type TestMove = Omit<InternalMove, "piece">;
 
 type ExpectedMoves = Record<
   string,
   {
     square: Square;
-    moves: InternalMove[];
+    moves: Array<TestMove>;
   }[]
 >;
 
-function runTest(fen: string, expectedMoves: ExpectedMoves) {
+function runTest(fen: string, expectedMoves: ExpectedMoves, color?: Color) {
   const chess = Chess.load(fen);
 
   Object.keys(expectedMoves).forEach((key) =>
-    test(key.split("_").join(" "), () =>
-      expectedMoves[key].forEach(({ square, moves: expectedMoves }) => {
-        const moves = chess.getMovesForSquare(square);
+    test(
+      key
+        .split("_")
+        .concat([color ?? ""])
+        .join(" "),
+      () =>
+        expectedMoves[key].forEach(({ square, moves: expectedMoves }) => {
+          const moves: Array<TestMove> = chess
+            .getMovesForSquare(square)
+            .map(({ from, to, flags, promotion }) => {
+              return promotion
+                ? {
+                  from,
+                  to,
+                  flags,
+                  promotion,
+                }
+                : { from, to, flags };
+            });
 
-        expect(moves).toHaveLength(expectedMoves.length);
-        moves.forEach((move) => expect(expectedMoves).toContainEqual(move));
-        expectedMoves.forEach((expectedMove) =>
-          expect(moves).toContainEqual(expectedMove)
-        );
-      })
+          expect(moves).toHaveLength(expectedMoves.length);
+          moves.forEach((move) => expect(expectedMoves).toContainEqual(move));
+          expectedMoves.forEach((expectedMove) =>
+            expect(moves).toContainEqual(expectedMove)
+          );
+        })
     )
   );
 }
@@ -32,8 +56,8 @@ function runTests(
   expectedMovesW: ExpectedMoves,
   expectedMovesB: ExpectedMoves
 ) {
-  runTest(fen.replace("%", "w"), expectedMovesW);
-  runTest(fen.replace("%", "b"), expectedMovesB);
+  runTest(fen.replace("%", "w"), expectedMovesW, COLOR.WHITE);
+  runTest(fen.replace("%", "b"), expectedMovesB, COLOR.BLACK);
 }
 
 describe("pawn moves", () => {
@@ -55,6 +79,30 @@ describe("pawn moves", () => {
           { from: "b7", to: "b8", flags: MOVE_FLAGS.PROMOTION, promotion: "b" },
           { from: "b7", to: "b8", flags: MOVE_FLAGS.PROMOTION, promotion: "r" },
           { from: "b7", to: "b8", flags: MOVE_FLAGS.PROMOTION, promotion: "q" },
+          {
+            from: "b7",
+            to: "a8",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "n",
+          },
+          {
+            from: "b7",
+            to: "a8",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "b",
+          },
+          {
+            from: "b7",
+            to: "a8",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "r",
+          },
+          {
+            from: "b7",
+            to: "a8",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "q",
+          },
         ],
       },
     ],
@@ -99,6 +147,30 @@ describe("pawn moves", () => {
           { from: "g2", to: "g1", flags: MOVE_FLAGS.PROMOTION, promotion: "b" },
           { from: "g2", to: "g1", flags: MOVE_FLAGS.PROMOTION, promotion: "r" },
           { from: "g2", to: "g1", flags: MOVE_FLAGS.PROMOTION, promotion: "q" },
+          {
+            from: "g2",
+            to: "h1",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "n",
+          },
+          {
+            from: "g2",
+            to: "h1",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "b",
+          },
+          {
+            from: "g2",
+            to: "h1",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "r",
+          },
+          {
+            from: "g2",
+            to: "h1",
+            flags: MOVE_FLAGS.PROMOTION | MOVE_FLAGS.CAPTURE,
+            promotion: "q",
+          },
         ],
       },
     ],
@@ -131,7 +203,7 @@ describe("pawn moves", () => {
   };
 
   runTests(
-    "7k/1Pp1p2p/2P2p2/4p3/3P4/2P5/P5p1/K7 % - - 0 1",
+    "r6k/1Pp1p2p/2P2p2/4p3/3P4/2P5/P5p1/K6R % - - 0 1",
     expectedMovesW,
     expectedMovesB
   );
@@ -213,7 +285,7 @@ describe("knight moves", () => {
         square: "c3",
         moves: [
           { from: "c3", to: "e4", flags: MOVE_FLAGS.NORMAL },
-          { from: "c3", to: "b5", flags: MOVE_FLAGS.CAPTURE },
+          { from: "c3", to: "b5", flags: MOVE_FLAGS.NORMAL },
           { from: "c3", to: "a4", flags: MOVE_FLAGS.NORMAL },
           { from: "c3", to: "a2", flags: MOVE_FLAGS.CAPTURE },
           { from: "c3", to: "b1", flags: MOVE_FLAGS.NORMAL },
@@ -225,7 +297,7 @@ describe("knight moves", () => {
   };
 
   runTests(
-    "n7/1n6/8/1K1kN3/8/2n5/N5N1/7N % - - 0 1",
+    "n7/Kn6/8/3kN3/8/2n5/N5N1/7N % - - 0 1",
     expectedMovesW,
     expectedMovesB
   );

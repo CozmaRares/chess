@@ -11,7 +11,7 @@ export const PIECE = Object.freeze({
 } as const);
 
 function isPieceValid(string: string): boolean {
-  return (Object.values(PIECE) as string[]).includes(string);
+  return (Object.values(PIECE) as Array<string>).includes(string);
 }
 
 export const PIECE_PROMOTION = Object.freeze([
@@ -34,7 +34,7 @@ export type Piece = {
   color: Color;
 };
 
-export type Board = (Piece | null)[];
+export type Board = Array<Piece | null>;
 
 // prettier-ignore
 export const SQUARES = Object.freeze([
@@ -331,12 +331,16 @@ function generatePawnMoves(
   color: Color,
   board: Readonly<Board>,
   enPassantSquare: Square
-): InternalMove[] {
+): Array<InternalMove> {
   if (board[position] == null) return [];
 
-  const moves: InternalMove[] = [];
+  const moves: Array<InternalMove> = [];
 
-  const generatePromotionMoves = (from: number, to: number, flag: MoveFlag) => {
+  const generatePromotionMoves = (
+    from: number,
+    to: number,
+    flag?: MoveFlag
+  ) => {
     const fromAlgebraic = algebraic(from);
     const toAlgebraic = algebraic(to);
 
@@ -346,7 +350,7 @@ function generatePawnMoves(
         from: fromAlgebraic,
         to: toAlgebraic,
         promotion: piece,
-        flags: MOVE_FLAGS.PROMOTION | flag,
+        flags: MOVE_FLAGS.PROMOTION | (flag ?? 0),
       })
     );
   };
@@ -356,7 +360,7 @@ function generatePawnMoves(
 
   if (board[nextPosition] == null)
     if (rank(nextPosition) == PAWN_MOVE_INFO[color].promotion)
-      generatePromotionMoves(position, nextPosition, MOVE_FLAGS.NORMAL);
+      generatePromotionMoves(position, nextPosition);
     else {
       moves.push({
         piece: { type: PIECE.PAWN, color },
@@ -409,13 +413,13 @@ export function generatePieceMoves(
   piece: Piece,
   board: Readonly<Board>,
   enPassantSquare: Square
-): InternalMove[] {
+): Array<InternalMove> {
   if (piece.type == PIECE.PAWN)
     return generatePawnMoves(position, piece.color, board, enPassantSquare);
 
   const type = piece.type; // hacked the type system
   const generateOnce = () => {
-    const moves: InternalMove[] = [];
+    const moves: Array<InternalMove> = [];
 
     PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
       if (excludedFiles.includes(file(position))) return;
@@ -446,7 +450,7 @@ export function generatePieceMoves(
   };
 
   const generateMultiple = () => {
-    const moves: InternalMove[] = [];
+    const moves: Array<InternalMove> = [];
 
     PIECE_MOVE_INFO[type].moves.forEach(({ offset, excludedFiles }) => {
       if (excludedFiles.includes(file(position))) return;
@@ -509,9 +513,9 @@ export default class Chess {
   private _fullMoves;
   private _kings;
 
-  private _moves: InternalMove[] = [];
-  private _attacks: number[] = [];
-  private _history: Readonly<{ fen: string; san: string }>[] = [];
+  private _moves: Array<InternalMove> = [];
+  private _attacks: Array<number> = [];
+  private _history: Array<Readonly<{ fen: string; san: string }>> = [];
   private _enableProcessMoves = true;
   private _boardPositionCounter = new Map<string, number>();
 
@@ -702,7 +706,7 @@ export default class Chess {
     if (this._castling.b & MOVE_FLAGS.Q_CASTLE) castling += "q";
     if (castling == "") castling = "-";
 
-    const arr: any[] = [
+    const arr: Array<any> = [
       position.substring(1), // remove first '/'
       this._turn,
       castling,
@@ -743,7 +747,7 @@ export default class Chess {
     return str;
   }
 
-  getMoves(): InternalMove[] {
+  getMoves(): Array<InternalMove> {
     return this._moves;
   }
 
@@ -765,7 +769,7 @@ export default class Chess {
     }, this);
   }
 
-  getMovesForSquare(square: Square): InternalMove[] {
+  getMovesForSquare(square: Square): Array<InternalMove> {
     return this._moves.filter(({ from }) => from == square);
   }
 
