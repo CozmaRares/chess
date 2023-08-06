@@ -4,29 +4,25 @@ import { CircleExclamation } from "./icons";
 
 const ErrorNorification: React.FC<{
   error?: string;
-  removeError: () => void;
+  removeError?: () => void;
 }> = ({ error, removeError }) => {
   const [err, setErr] = useState(error);
   const divRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const id = setTimeout(() => {
-      if (err == undefined) return;
+      if (err == undefined || divRef.current == null) return;
 
-      let duration = 1;
-      if (divRef.current != null) {
-        divRef.current.classList.add(
-          "opacity-0",
-          "transition-opacity",
-          "duration-300"
-        );
-        duration = 300;
-      }
+      divRef.current.classList.add(
+        "opacity-0",
+        "transition-opacity",
+        "duration-300"
+      );
 
       setTimeout(() => {
-        removeError();
+        if (removeError) removeError();
         setErr(undefined);
-      }, duration);
+      }, 300);
     }, 2 * 1000);
 
     return () => clearTimeout(id);

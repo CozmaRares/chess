@@ -16,13 +16,16 @@ const ChessUI: React.FC<InferProps<[typeof ChessBoard, typeof History]>> = (
 
   return (
     <>
-      <div className="max-h-[80vmin] m-4 flex flex-row gap-4 justify-center">
-        <ChessBoard
-          key={`${props.blackPerspective}` + chess.getFEN()}
-          {...props}
-          disabled={(props.disabled ?? false) || chess.isGameOver()}
-        />
-        <History {...props} />
+      <div className="w-screen h-screen flex items-center justify-center">
+        <div className="m-4 flex flex-row gap-4">
+          <ChessBoard
+            key={`${props.blackPerspective}` + chess.getFEN()}
+            {...props}
+            chess={chess.getCurrentBoardPosition()}
+            disabled={(props.disabled ?? false) || chess.isGameOver()}
+          />
+          <History {...props} />
+        </div>
       </div>
       <Show when={showModal && chess.isGameOver()}>
         <Modal enableOverlay>
@@ -37,9 +40,6 @@ const ChessUI: React.FC<InferProps<[typeof ChessBoard, typeof History]>> = (
             <ModalButton onClick={() => navigate("/")}>
               Go to main page
             </ModalButton>
-            {props.newGame && (
-              <ModalButton onClick={props.newGame}>New Game</ModalButton>
-            )}
             <ModalButton onClick={() => setShowModal(false)}>Close</ModalButton>
           </div>
         </Modal>

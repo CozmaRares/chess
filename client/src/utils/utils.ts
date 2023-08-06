@@ -1,3 +1,3 @@
 export function removeLocationState() {
-    window.history.replaceState({ state: null }, document.title);
+  window.history.replaceState({ state: null }, document.title);
 }

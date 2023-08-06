@@ -31,6 +31,7 @@ const Home = () => {
       .catch((err) => {
         console.error(err);
         setErr(err);
+        setCreate(false);
       });
   };
 
@@ -56,13 +57,13 @@ const Home = () => {
 
   const errObj = err?.message
     ? {
-      error: err.message,
-      removeError: () => setErr(undefined),
-    }
+        error: err.message,
+        removeError: () => setErr(undefined),
+      }
     : {
-      error,
-      removeError: removeLocationState,
-    };
+        error,
+        removeError: removeLocationState,
+      };
 
   return (
     <>

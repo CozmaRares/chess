@@ -8,6 +8,23 @@
   font-family: "Ubuntu Mono", monospace;
 }
 
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  @apply mx-1 w-2;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded-xl;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
 .loading:after {
   display: inline-block;
   animation: dotty steps(1, end) 2s infinite;

@@ -504,13 +504,14 @@ export default class Chess {
   private _halfMoves;
   private _fullMoves;
   private _kings;
+  private _enableProcessMoves;
+  private _enableHistory;
 
   private _moves: Array<InternalMove> = [];
   private _attacks: Array<number> = [];
   private _history: Array<Readonly<{ fen: string; san: string }>> = [];
   private _boardPositionCounter = new Map<string, number>();
-  private _enableProcessMoves = true;
-  private _enableHistory = true;
+  private _undoCount = 0;
 
   private constructor(
     board: Board,
@@ -604,16 +605,14 @@ export default class Chess {
     return this._boardPositionCounter.get(trimFEN) ?? 0;
   }
 
-  private _modifyPositionCounter(decrement: boolean) {
-    const trimFEN = this.getFEN(true);
-    const counter = this._boardPositionCounter.get(trimFEN) ?? 0;
-    this._boardPositionCounter.set(trimFEN, counter + (decrement ? -1 : 1));
-  }
-
-  private _processBoardState(undo = false) {
+  private _processBoardState() {
     this._computeMoves();
 
-    if (!undo) this._modifyPositionCounter(false);
+    if (this._enableHistory) {
+      const trimFEN = this.getFEN(true);
+      const counter = this._boardPositionCounter.get(trimFEN) ?? 0;
+      this._boardPositionCounter.set(trimFEN, counter + 1);
+    }
   }
 
   private static _load(
@@ -844,17 +843,35 @@ export default class Chess {
   }
 
   private _generateSan(move: InternalMove) {
-    const pieceType =
-      move.piece.type == PIECE.PAWN ? "" : move.piece.type.toUpperCase();
     let san = "";
 
-    if (move.flags & MOVE_FLAGS.K_CASTLE) san = "O-O";
-    else if (move.flags & MOVE_FLAGS.Q_CASTLE) san = "O-O-O";
-    else if (move.flags & MOVE_FLAGS.CAPTURE)
-      san = pieceType + this._sanDisambiguator(move) + "x" + move.to;
-    else san = pieceType + this._sanDisambiguator(move) + move.to;
+    const arr = [
+      { flag: MOVE_FLAGS.K_CASTLE, handler: () => "O-O" },
+      { flag: MOVE_FLAGS.Q_CASTLE, handler: () => "O-O-O" },
+      {
+        flag: MOVE_FLAGS.CAPTURE,
+        handler: () => {
+          const prefix =
+            move.piece.type == PIECE.PAWN
+              ? move.from[0]
+              : move.piece.type.toUpperCase();
+          return prefix + this._sanDisambiguator(move) + "x" + move.to;
+        },
+      },
+    ];
 
-    if (move.promotion) san += `=${move.promotion.toUpperCase()}`;
+    for (const { flag, handler } of arr)
+      if (move.flags & flag) {
+        san = handler();
+        break;
+      }
+
+    if (san == "") {
+      const prefix =
+        move.piece.type == PIECE.PAWN ? "" : move.piece.type.toUpperCase();
+
+      san = prefix + this._sanDisambiguator(move) + move.to;
+    }
 
     const chess = Chess._load(this.getFEN(), {
       enableProcessMoves: true,
@@ -886,6 +903,7 @@ export default class Chess {
     if (moveObj == null) throw new Error("Move not found");
 
     this._makeMove(moveObj);
+    this._undoCount = 0;
   }
 
   private _updateCastling() {
@@ -1001,33 +1019,42 @@ export default class Chess {
   }
 
   undo() {
-    this._modifyPositionCounter(true);
-    const lastHistory = this._history.pop();
-    if (lastHistory == undefined) return;
-
-    const chess = Chess._load(lastHistory.fen, {
-      enableProcessMoves: false,
-      enableHistory: false,
-    });
-    this._board = chess._board;
-    this._turn = chess._turn;
-    this._castling = chess._castling;
-    this._enPassant = chess._enPassant;
-    this._halfMoves = chess._halfMoves;
-    this._fullMoves = chess._fullMoves;
-    this._kings = chess._kings;
-    this._processBoardState(true);
+    this._undoCount = Math.min(this._history.length, this._undoCount + 1);
   }
 
-  // TODO:
-  redo() { }
+  didUndo() {
+    return this._undoCount != 0;
+  }
+
+  redo() {
+    this._undoCount = Math.max(0, this._undoCount - 1);
+  }
+
+  getCurrentBoardPosition() {
+    if (this._undoCount == 0) return this;
+
+    const { fen } = this._history.at(-this._undoCount) ?? {
+      fen: DEFAULT_POSITION,
+    };
+
+    const chess = Chess._load(fen, {
+      enableHistory: false,
+      enableProcessMoves: true,
+    });
+    chess._undoCount = this._undoCount;
+
+    return chess;
+  }
 
   getTurn() {
     return this._turn;
   }
 
   getHistory() {
-    return this._history;
+    return {
+      currentPosition: this._history.length - this._undoCount - 1,
+      history: this._history,
+    };
   }
 
   getKings(): Readonly<Record<Color, number>> {
@@ -1100,5 +1127,3 @@ export default class Chess {
     }
   };
 }
-
-// TODO: add missing tests for features

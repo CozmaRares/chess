@@ -93,7 +93,7 @@ const ChessBoard: React.FC<{
 
     if (isNaN(tile)) return;
 
-    if (activeTile != -1 && tileProps[tile].isAttacked) {
+    if (!chess.didUndo() && activeTile != -1 && tileProps[tile].isAttacked) {
       const moveObj = {
         from: algebraic(activeTile),
         to: algebraic(tile),
@@ -131,9 +131,13 @@ const ChessBoard: React.FC<{
   };
 
   return (
-    <div className="relative aspect-square isolate border-[6px] border-black rounded-lg">
+    <div
+      className="box-content relative aspect-square isolate border-[6px] border-black rounded-lg"
+      // HACK: see History.tsx
+      id="chessboard"
+    >
       <div
-        className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-h-full"
+        className="grid grid-rows-8 grid-cols-8 aspect-square select-none max-w-[800px]"
         onClick={handleClick}
       >
         {blackPerspective ? tiles.reverse() : tiles}
@@ -200,17 +204,16 @@ const Tile: React.FC<{
     return (
       <div
         className={[
-          "relative aspect-square font-bold text-xl group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-4 -outline-offset-4",
+          "relative aspect-square font-bold text-xl group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-2 sm:outline-4 -outline-offset-2 sm:-outline-offset-4",
           isActive ? activeColor : bgColor,
           piece ? "cursor-pointer" : "",
         ].join(" ")}
         data-tile={tileNumber}
       >
-        {/* HACK: image width causes issues, will work as long as ChessUI's height and ChessBoard's border aren't modified */}
         {piece && (
           <img
             src={PIECES[piece.color][piece.type]}
-            className="max-w-[calc(80vmin/8-12px)]"
+            className="max-w-full max-h-full aspect-square"
           />
         )}
         <Show when={EndGameIcon != undefined}>

@@ -1,37 +1,49 @@
 import { ReactNode, useEffect, useRef } from "react";
 import Chess from "../../../server/src/engine";
-import { CaretLeft, CaretRight, Plus, Repeat } from "../components/icons";
 
 const History: React.FC<{
     chess: Chess;
-    newGame?: () => void;
-    switchSides?: () => void;
-    undo?: () => void;
-    redo?: () => void;
-}> = ({ chess, newGame, switchSides, undo, redo }) => {
+    buttons?: Array<{ onClick: () => void; title: string; icon: ReactNode }>;
+}> = ({ chess, buttons }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const historyRef = useRef<HTMLDivElement>(null);
 
+    const { currentPosition, history: moveHistory } = chess.getHistory();
+
     useEffect(() => {
-        const div = historyRef.current as HTMLDivElement;
-        if (div) div.scrollTop = div.scrollHeight;
-    }, [chess.getHistory().length]);
+        // HACK: couldn't find any other way for ChessBoard and History to have the same height
+        setTimeout(() => {
+            const chessboard = document.querySelector(
+                "#chessboard"
+            ) as HTMLDivElement;
+            const { height } = chessboard.getBoundingClientRect();
+            const containerDiv = containerRef.current as HTMLDivElement;
+            containerDiv.style.setProperty("max-height", `${height}px`);
+        }, 100);
+
+        const historyDiv = historyRef.current as HTMLDivElement;
+        historyDiv.scrollTop = historyDiv.scrollHeight;
+    }, [moveHistory.length]);
 
     const history: ReactNode[] = [];
 
-    chess.getHistory().forEach(({ san }, idx) => {
-        const idk = (idx >> 1) + 1;
-        const bg = idk % 2 == 0 ? "bg-zinc-600" : "";
+    moveHistory.forEach(({ san }, idx) => {
+        const fullMove = (idx >> 1) + 1;
+        const bg = fullMove % 2 == 0 ? "bg-zinc-600" : "";
+        const current = idx == currentPosition ? "bg-gray-500/80" : "";
 
         if (idx % 2 == 0)
             history.push(
                 <span key={idx} className={`px-2 ${bg}`}>
-                    {idk}.
+                    {fullMove}.
                 </span>
             );
 
         history.push(
             <span key={idx + san} className={bg}>
-                {san}
+                <span className={`inline-block h-full w-2/3 rounded-md ${current}`}>
+                    {san}
+                </span>
             </span>
         );
     });
@@ -45,35 +57,23 @@ const History: React.FC<{
         );
 
     return (
-        <div className="bg-zinc-800 rounded-lg text-white grid grid-rows-[auto,1fr,auto]">
-            <div className="text-xl text-center my-1 mx-4 border-b ">History</div>
+        <div
+            ref={containerRef}
+            className="bg-zinc-800 rounded-lg text-white hidden md:grid grid-rows-[auto,1fr,auto]"
+        >
+            <div className="text-xl text-center my-1 mx-4 border-b">History</div>
             <div
                 ref={historyRef}
-                className="p-4 min-w-[13rem] h-fit max-h-full overflow-scroll grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md"
+                className="p-4 min-w-[13rem] h-fit max-h-full overflow-y-scroll overflow-x-hidden grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md [&>:not(:nth-child(3n-2))]:font-bold"
             >
                 {history}
             </div>
             <div className="bg-black grid auto-cols-fr grid-flow-col gap-5 p-4 rounded-b-lg empty:hidden">
-                {newGame && (
-                    <Button title="New Game" onClick={newGame}>
-                        <Plus />
+                {buttons?.map(({ onClick, title, icon }) => (
+                    <Button key={title} title={title} onClick={onClick}>
+                        {icon}
                     </Button>
-                )}
-                {switchSides && (
-                    <Button title="Switch Sides" onClick={switchSides}>
-                        <Repeat />
-                    </Button>
-                )}
-                {undo && (
-                    <Button title="Undo" onClick={undo}>
-                        <CaretLeft />
-                    </Button>
-                )}
-                {redo && (
-                    <Button title="Redo" onClick={redo}>
-                        <CaretRight />
-                    </Button>
-                )}
+                ))}
             </div>
         </div>
     );
@@ -86,7 +86,7 @@ const Button: React.FC<{
     onClick: () => void;
 }> = ({ children, title, disabled, onClick }) => (
     <button
-        className="relative min-w-[1rem] mt-auto bg-zinc-800 flex justify-center items-center p-2 rounded-md hover:bg-zinc-900 transition-colors group"
+        className="relative min-w-[1rem] mt-auto bg-zinc-800 flex justify-center items-center p-2 rounded-md hover:bg-zinc-900 transition-colors group capitalize"
         onClick={onClick}
         disabled={disabled}
     >
