@@ -1,11 +1,11 @@
 {
   "name": "multiplayer chess",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private":true,
+  "type": "module",
   "scripts": {
     "start": "node server/dist/server.js",
-    "dev:server": "nodemon server/src/server.ts",
+    "dev:server": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' server/src/server.ts",
     "dev:client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build:server": "tsc -p .",
@@ -13,12 +13,10 @@
     "build": "concurrently \"npm run build:server\" \"npm run build:client\"",
     "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "nanoid": "^4.0.2",
     "socket.io": "^4.7.1"
   },
   "devDependencies": {

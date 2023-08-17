@@ -3,10 +3,16 @@ import path from "path";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
-import { randomUUID } from "crypto";
 import Chess, { COLOR, Color, Move } from "./engine";
+import { nanoid as nanoidOriginal } from "nanoid";
 
 dotenv.config();
+
+const ID_LENGTH = isNaN(parseInt(process.env.ID_LENGTH!))
+  ? 10
+  : parseInt(process.env.ID_LENGTH!);
+
+const nanoid = () => nanoidOriginal(ID_LENGTH);
 
 const PORT = process.env.PORT || 5000;
 
@@ -105,9 +111,9 @@ if (process.env.NODE_ENV === "development")
   });
 
 app.get("/api/create-game", (_req, res) => {
-  let id = randomUUID();
+  let id = nanoid();
 
-  while (rooms.has(id)) id = randomUUID();
+  while (rooms.has(id)) id = nanoid();
 
   rooms.set(id, {
     b: null,
