@@ -29,18 +29,17 @@ const History: React.FC<{
 
     moveHistory.forEach(({ san }, idx) => {
         const fullMove = (idx >> 1) + 1;
-        const bg = fullMove % 2 == 0 ? "bg-zinc-600" : "";
         const current = idx == currentPosition ? "bg-gray-500/80" : "";
 
         if (idx % 2 == 0)
             history.push(
-                <span key={idx} className={`px-2 ${bg}`}>
+                <span key={idx} className="px-2 py-1">
                     {fullMove}.
                 </span>
             );
 
         history.push(
-            <span key={idx + san} className={bg}>
+            <span key={idx + san} className="py-1">
                 <span className={`inline-block h-full w-2/3 rounded-md ${current}`}>
                     {san}
                 </span>
@@ -48,13 +47,7 @@ const History: React.FC<{
         );
     });
 
-    if (history.length % 3)
-        history.push(
-            <span
-                key="__history-last__"
-                className={((history.length + 1) / 3) % 2 == 0 ? "bg-zinc-600" : ""}
-            ></span>
-        );
+    if (history.length % 3) history.push(<span key="__history-last__"></span>);
 
     return (
         <div
@@ -64,7 +57,7 @@ const History: React.FC<{
             <div className="text-xl text-center my-1 mx-4 border-b">History</div>
             <div
                 ref={historyRef}
-                className="p-4 min-w-[13rem] h-fit max-h-full overflow-y-scroll overflow-x-hidden grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md [&>:not(:nth-child(3n-2))]:font-bold"
+                className="p-4 min-w-[13rem] h-fit max-h-full overflow-y-scroll overflow-x-hidden grid grid-cols-[auto,1fr,1fr] gap-y-2 text-center [&>:nth-child(3n)]:rounded-r-md [&>:nth-child(3n-2)]:rounded-l-md [&>:not(:nth-child(3n-2))]:font-bold [&>:nth-child(6n)]:bg-zinc-600 [&>:nth-child(6n-1)]:bg-zinc-600 [&>:nth-child(6n-2)]:bg-zinc-600"
             >
                 {history}
             </div>
