@@ -20,7 +20,7 @@ const LocalGame = () => {
     const rerender = () => aux((prev) => !prev);
 
     const makeMove = (move: Move) => {
-        if (chess.didUndo()) return;
+        if (chess.didUndo()) chess.undoMoves();
 
         chess.makeMove(move);
         rerender();

@@ -13,15 +13,16 @@ const ChessUI: React.FC<InferProps<[typeof ChessBoard, typeof History]>> = (
   const [showModal, setShowModal] = useState(true);
   const navigate = useNavigate();
   const chess = props.chess;
+  const currentChess = chess.getCurrentBoardPosition();
 
   return (
     <>
       <div className="w-screen h-screen flex items-center justify-center">
         <div className="m-4 flex flex-row gap-4">
           <ChessBoard
-            key={`${props.blackPerspective}` + chess.getFEN()}
+            key={`${props.blackPerspective}` + currentChess.getFEN()}
             {...props}
-            chess={chess.getCurrentBoardPosition()}
+            chess={currentChess}
             disabled={(props.disabled ?? false) || chess.isGameOver()}
           />
           <History {...props} />

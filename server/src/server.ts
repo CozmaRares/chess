@@ -9,7 +9,7 @@ import { nanoid as nanoidOriginal } from "nanoid";
 dotenv.config();
 
 const ID_LENGTH = isNaN(parseInt(process.env.ID_LENGTH!))
-  ? 10
+  ? 8
   : parseInt(process.env.ID_LENGTH!);
 
 const nanoid = () => nanoidOriginal(ID_LENGTH);

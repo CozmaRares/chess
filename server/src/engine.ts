@@ -509,7 +509,9 @@ export default class Chess {
 
   private _moves: Array<InternalMove> = [];
   private _attacks: Array<number> = [];
-  private _history: Array<Readonly<{ fen: string; san: string }>> = [];
+  private _history: Array<
+    Readonly<{ fen: string; san: string; move: InternalMove }>
+  > = [];
   private _boardPositionCounter = new Map<string, number>();
   private _undoCount = 0;
 
@@ -600,19 +602,26 @@ export default class Chess {
     }
   }
 
-  private _getPositionCounter() {
-    const trimFEN = this.getFEN(true);
+  private _trimFEN(fen: string) {
+    const split = fen.split(" ");
+    return split.splice(0, 4).join(" ");
+  }
+
+  private _getPositionCounter(fen: string) {
+    const trimFEN = this._trimFEN(fen);
     return this._boardPositionCounter.get(trimFEN) ?? 0;
+  }
+
+  private _incrementPositionCounter(fen: string) {
+    const trimFEN = this._trimFEN(fen);
+    const counter = this._boardPositionCounter.get(trimFEN) ?? 0;
+    this._boardPositionCounter.set(trimFEN, counter + 1);
   }
 
   private _processBoardState() {
     this._computeMoves();
 
-    if (this._enableHistory) {
-      const trimFEN = this.getFEN(true);
-      const counter = this._boardPositionCounter.get(trimFEN) ?? 0;
-      this._boardPositionCounter.set(trimFEN, counter + 1);
-    }
+    if (this._enableHistory) this._incrementPositionCounter(this.getFEN());
   }
 
   private static _load(
@@ -660,7 +669,7 @@ export default class Chess {
     return this._load(fen, { enableProcessMoves: true, enableHistory: true });
   }
 
-  getFEN(trim = false) {
+  getFEN() {
     let position = "";
     let emptySquares = 0;
 
@@ -702,9 +711,9 @@ export default class Chess {
       this._turn,
       castling,
       this._enPassant,
+      this._halfMoves,
+      this._fullMoves,
     ];
-
-    if (!trim) arr.push(this._halfMoves, this._fullMoves);
 
     return arr.join(" ");
   }
@@ -752,6 +761,7 @@ export default class Chess {
       this._history.push({
         fen: this.getFEN(),
         san: this._generateSan(move),
+        move,
       });
 
     this._board[squareIndex(move.to)] =
@@ -998,7 +1008,7 @@ export default class Chess {
   }
 
   isThreefoldRepetition() {
-    return this._getPositionCounter() >= 3;
+    return this._getPositionCounter(this.getFEN()) >= 3;
   }
 
   is50Rule() {
@@ -1041,9 +1051,31 @@ export default class Chess {
       enableHistory: false,
       enableProcessMoves: true,
     });
-    chess._undoCount = this._undoCount;
+    chess._undoCount = 0;
+    chess._history = this._history.slice(
+      0,
+      this._history.length - this._undoCount
+    );
 
     return chess;
+  }
+
+  undoMoves() {
+    const chess = this.getCurrentBoardPosition();
+
+    this._board = chess._board;
+    this._turn = chess._turn;
+    this._castling = chess._castling;
+    this._enPassant = chess._enPassant;
+    this._halfMoves = chess._halfMoves;
+    this._fullMoves = chess._fullMoves;
+    this._kings = chess._kings;
+    this._history = chess._history;
+    this._undoCount = 0;
+    this._boardPositionCounter = new Map<string, number>();
+    this._history.forEach(({ fen }) => this._incrementPositionCounter(fen));
+
+    this._processBoardState();
   }
 
   getTurn() {

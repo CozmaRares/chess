@@ -7,7 +7,6 @@ import { socket } from "../utils/socket";
 import { CaretLeft, CaretRight, CopyIcon } from "../components/icons";
 import Show from "../utils/Show";
 import ErrorNorification from "../components/ErrorNotification";
-import Modal, { ModalButton } from "../components/Modal";
 import ChessUI from "../components/ChessUI";
 import { removeLocationState } from "../utils/utils";
 import InferProps from "../utils/InferProps";
@@ -106,7 +105,7 @@ const Game = () => {
         chess={chess}
         makeMove={makeMove}
         blackPerspective={color === COLOR.BLACK}
-        disabled={color !== chess.getTurn()}
+        disabled={color !== chess.getTurn() || chess.didUndo()}
         buttons={buttons}
       />
     </Show>

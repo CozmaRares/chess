@@ -57,8 +57,17 @@ const ChessBoard: React.FC<{
       isAttacked: false,
       isPromotion: false,
       isActive: false,
-      EndGameIcon: undefined,
+      endGameIcon: undefined,
     }));
+
+  const lastMove = chess.getHistory().history.at(-1)?.move;
+  console.log(chess.getHistory().history.at(-1));
+
+  if (lastMove) {
+    console.log(lastMove);
+    tileProps[squareIndex(lastMove.from)].isActive = true;
+    tileProps[squareIndex(lastMove.to)].isActive = true;
+  }
 
   if (activeTile != -1) {
     tileProps[activeTile].isActive = true;
@@ -72,13 +81,13 @@ const ChessBoard: React.FC<{
   if (chess.isGameOver()) {
     const kings = chess.getKings();
     if (chess.isDraw()) {
-      tileProps[kings[COLOR.BLACK]].EndGameIcon = <HalfStar />;
-      tileProps[kings[COLOR.WHITE]].EndGameIcon = <HalfStar />;
+      tileProps[kings[COLOR.BLACK]].endGameIcon = <HalfStar />;
+      tileProps[kings[COLOR.WHITE]].endGameIcon = <HalfStar />;
     } else {
       const loser = chess.getTurn(),
         winner = swapColor(loser);
-      tileProps[kings[winner]].EndGameIcon = <Crown />;
-      tileProps[kings[loser]].EndGameIcon = <Hashtag />;
+      tileProps[kings[winner]].endGameIcon = <Crown />;
+      tileProps[kings[loser]].endGameIcon = <Hashtag />;
     }
   }
 
@@ -93,7 +102,7 @@ const ChessBoard: React.FC<{
 
     if (isNaN(tile)) return;
 
-    if (!chess.didUndo() && activeTile != -1 && tileProps[tile].isAttacked) {
+    if (activeTile != -1 && tileProps[tile].isAttacked) {
       const moveObj = {
         from: algebraic(activeTile),
         to: algebraic(tile),
@@ -180,14 +189,14 @@ const Tile: React.FC<{
   isActive: boolean;
   isAttacked: boolean;
   blackPerspective?: boolean;
-  EndGameIcon?: ReactNode;
+  endGameIcon?: ReactNode;
 }> = ({
   tileNumber,
   piece,
   isActive,
   isAttacked,
   blackPerspective,
-  EndGameIcon,
+  endGameIcon,
 }) => {
     const color = squareColor(tileNumber);
 
@@ -216,9 +225,9 @@ const Tile: React.FC<{
             className="max-w-full max-h-full aspect-square"
           />
         )}
-        <Show when={EndGameIcon != undefined}>
+        <Show when={endGameIcon != undefined}>
           <div className="absolute top-0 left-full -translate-x-1/2 -translate-y-1/2 bg-white z-10 rounded-full p-1 shadow-lg shadow-black aspect-square flex justify-center items-center">
-            {EndGameIcon}
+            {endGameIcon}
           </div>
         </Show>
         <Show when={isAttacked}>
