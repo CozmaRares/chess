@@ -3,7 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
-import Chess, { COLOR, Color, Move } from "./engine";
+import Chess, { COLOR, Color, Move } from "./engine.js";
 import { nanoid as nanoidOriginal } from "nanoid";
 
 dotenv.config();

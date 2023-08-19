@@ -8,7 +8,7 @@
     "dev:server": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' server/src/server.ts",
     "dev:client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "build:server": "tsc -p .",
+    "build:server": "tsc",
     "build:client": "npm run build --prefix client",
     "build": "concurrently \"npm run build:server\" \"npm run build:client\"",
     "test": "vitest run"
