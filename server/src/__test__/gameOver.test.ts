@@ -16,15 +16,15 @@ describe("checkmate", () => {
   test("Fool's Mate", () => {
     expect(
       Chess.load(
-        "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"
-      ).isCheckMate()
+        "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+      ).isCheckMate(),
     ).toBe(true);
   });
   test("Scholar's Mate", () => {
     expect(
       Chess.load(
-        "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3"
-      ).isCheckMate()
+        "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+      ).isCheckMate(),
     ).toBe(true);
   });
 });
@@ -35,19 +35,19 @@ describe("stalemate", () => {
   });
   test("Rosen Trap", () => {
     expect(Chess.load("8/8/6k1/8/8/8/5q2/7K w - - 0 1").isStalemate()).toBe(
-      true
+      true,
     );
   });
   test("Troitsky vs. Vogt, 1896", () => {
     expect(
       Chess.load(
-        "3k4/1pp2pp1/1b4r1/pP2p3/P3P3/6Nb/5P1P/3qB1KR w - - 0 1"
-      ).isStalemate()
+        "3k4/1pp2pp1/1b4r1/pP2p3/P3P3/6Nb/5P1P/3qB1KR w - - 0 1",
+      ).isStalemate(),
     ).toBe(true);
   });
   test("Lukany vs. Smulyan, 1938", () => {
     expect(
-      Chess.load("8/8/8/p1K5/k1P1P3/PpP5/1P6/8 b - - 0 1").isStalemate()
+      Chess.load("8/8/8/p1K5/k1P1P3/PpP5/1P6/8 b - - 0 1").isStalemate(),
     ).toBe(true);
   });
 });
@@ -82,7 +82,7 @@ describe("threefold repetition", () => {
         { to: "e8", from: "e7" },
         { to: "e2", from: "e1" },
         { to: "e7", from: "e8" },
-      ]
+      ],
     );
     expect(chess.isThreefoldRepetition()).toBe(true);
   });
@@ -199,31 +199,31 @@ describe("50 moves", () => {
 describe("insufficient material", () => {
   test("2 kings", () => {
     expect(
-      Chess.load("8/k7/8/6K1/8/8/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("8/k7/8/6K1/8/8/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(true);
   });
 
   test("king and bishop", () => {
     expect(
-      Chess.load("5b2/k7/8/6K1/8/2B5/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("5b2/k7/8/6K1/8/2B5/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(true);
   });
 
   test("king and knight", () => {
     expect(
-      Chess.load("8/k7/8/3n2K1/8/5N2/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("8/k7/8/3n2K1/8/5N2/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(true);
   });
 
   test("king and knight vs king and bishop", () => {
     expect(
-      Chess.load("8/k3n3/8/6K1/8/2B5/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("8/k3n3/8/6K1/8/2B5/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(true);
   });
 
   test("king and 2 knights", () => {
     expect(
-      Chess.load("8/k7/4N3/6K1/8/5N2/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("8/k7/4N3/6K1/8/5N2/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(true);
   });
 
@@ -233,39 +233,39 @@ describe("insufficient material", () => {
 
   test("king and 2 bishops vs king", () => {
     expect(
-      Chess.load("8/k7/8/4B1K1/4B3/8/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("8/k7/8/4B1K1/4B3/8/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(false);
   });
 
   test("king and 2 knights vs king and bishop", () => {
     expect(
-      Chess.load("8/k7/3n4/6K1/2n1B3/8/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("8/k7/3n4/6K1/2n1B3/8/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(false);
   });
 
   test("king and 2 knights vs king and knight", () => {
     expect(
-      Chess.load("6N1/k7/3n4/6K1/2n5/8/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("6N1/k7/3n4/6K1/2n5/8/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(false);
   });
 
   test("king and rook vs king", () => {
     expect(
-      Chess.load("5r2/k7/8/6K1/8/8/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("5r2/k7/8/6K1/8/8/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(false);
   });
 
   test("king and queen vs king", () => {
     expect(
-      Chess.load("5Q2/k7/8/6K1/8/8/8/8 w - - 0 1").isInsufficientMaterial()
+      Chess.load("5Q2/k7/8/6K1/8/8/8/8 w - - 0 1").isInsufficientMaterial(),
     ).toBe(false);
   });
 
   test("only pawns remaining", () => {
     expect(
       Chess.load(
-        "1k6/3p4/1p6/6K1/5P2/4P3/8/8 w - - 0 1"
-      ).isInsufficientMaterial()
+        "1k6/3p4/1p6/6K1/5P2/4P3/8/8 w - - 0 1",
+      ).isInsufficientMaterial(),
     ).toBe(false);
   });
 });

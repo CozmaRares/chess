@@ -44,17 +44,17 @@ function runTest(fen: string, expectedMoves: ExpectedMoves, color?: Color) {
           expect(moves).toHaveLength(expectedMoves.length);
           moves.forEach((move) => expect(expectedMoves).toContainEqual(move));
           expectedMoves.forEach((expectedMove) =>
-            expect(moves).toContainEqual(expectedMove)
+            expect(moves).toContainEqual(expectedMove),
           );
-        })
-    )
+        }),
+    ),
   );
 }
 
 function runTests(
   fen: string,
   expectedMovesW: ExpectedMoves,
-  expectedMovesB: ExpectedMoves
+  expectedMovesB: ExpectedMoves,
 ) {
   runTest(fen.replace("%", "w"), expectedMovesW, COLOR.WHITE);
   runTest(fen.replace("%", "b"), expectedMovesB, COLOR.BLACK);
@@ -205,7 +205,7 @@ describe("pawn moves", () => {
   runTests(
     "r6k/1Pp1p2p/2P2p2/4p3/3P4/2P5/P5p1/K6R % - - 0 1",
     expectedMovesW,
-    expectedMovesB
+    expectedMovesB,
   );
 });
 
@@ -299,7 +299,7 @@ describe("knight moves", () => {
   runTests(
     "n7/Kn6/8/3kN3/8/2n5/N5N1/7N % - - 0 1",
     expectedMovesW,
-    expectedMovesB
+    expectedMovesB,
   );
 });
 
@@ -415,7 +415,7 @@ describe("bishop moves", () => {
   runTests(
     "K6b/8/3b4/2b3b1/8/8/B1BB4/7k % - - 0 1",
     expectedMovesW,
-    expectedMovesB
+    expectedMovesB,
   );
 });
 
@@ -580,7 +580,7 @@ describe("en passant", () => {
 
   runTest(
     "rnbqkbnr/pp1p1ppp/8/2pPp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
-    expectedMoves
+    expectedMoves,
   );
 });
 
@@ -600,6 +600,6 @@ describe("castling", () => {
 
   runTest(
     "rn1qkbnr/p4ppp/B1p5/1p1pp3/3PPBb1/2NQ3N/PPP2PPP/R3K2R w KQkq - 0 8",
-    expectedMoves
+    expectedMoves,
   );
 });

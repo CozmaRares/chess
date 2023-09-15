@@ -8,7 +8,7 @@ import Modal, { ModalButton } from "./Modal";
 import { useState } from "react";
 
 const ChessUI: React.FC<InferProps<[typeof ChessBoard, typeof History]>> = (
-  props
+  props,
 ) => {
   const [showModal, setShowModal] = useState(true);
   const navigate = useNavigate();

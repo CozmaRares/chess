@@ -89,7 +89,7 @@ describe("valid FEN strings", () => {
 
     const expected = builder.build();
     const chess = Chess.load(
-      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
     );
 
     for (let i = 0; i < 64; i++)
@@ -137,7 +137,7 @@ describe("valid FEN strings", () => {
 
     const expected = builder.build();
     const chess = Chess.load(
-      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
+      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
     );
 
     for (let i = 0; i < 64; i++)
@@ -185,7 +185,7 @@ describe("valid FEN strings", () => {
 
     const expected = builder.build();
     const chess = Chess.load(
-      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 1 2"
+      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 1 2",
     );
 
     for (let i = 0; i < 64; i++)
@@ -221,7 +221,7 @@ describe("valid FEN strings", () => {
 
     const expected = builder.build();
     const chess = Chess.load(
-      "r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 19"
+      "r1b1r1k1/pp4pp/3Bpp2/8/2q5/P5Q1/3R1PPP/R5K1 b - - 0 19",
     );
 
     for (let i = 0; i < 64; i++)
@@ -277,25 +277,25 @@ describe("valid FEN strings", () => {
 describe("invalid FEN strings", () => {
   test("string doesn't contain 6 fields", () => {
     expect(() => Chess.load("8/8/2k2Q2/8/5P2/8/1p6/6K1 b - 1 48")).toThrowError(
-      /^Invalid FEN - string must contain 6 space delimited fields$/
+      /^Invalid FEN - string must contain 6 space delimited fields$/,
     );
   });
 
   test("missing white king", () => {
     expect(() => Chess.load("8/8/2k2Q2/8/5P2/8/1p6/8 b - - 1 48")).toThrowError(
-      /^Invalid FEN - board position is missing white king$/
+      /^Invalid FEN - board position is missing white king$/,
     );
   });
 
   test("invalid turn", () => {
     expect(() =>
-      Chess.load("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 a - - 3 43")
+      Chess.load("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 a - - 3 43"),
     ).toThrowError(/^Invalid FEN - invalid side to move$/);
   });
 
   test("invalid castling rights", () => {
     expect(() =>
-      Chess.load("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 b abc - 3 43")
+      Chess.load("1k6/1pp5/p7/5B1p/PP6/6K1/4p2r/4R3 b abc - 3 43"),
     ).toThrowError(/^Invalid FEN - string contains invalid castling rights$/);
   });
 });

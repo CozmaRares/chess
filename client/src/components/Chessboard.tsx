@@ -121,7 +121,7 @@ const ChessBoard: React.FC<{
     if (tile == activeTile) return setActiveTile(-1);
 
     setActiveTile(
-      chess.getMovesForSquare(algebraic(tile)).length == 0 ? -1 : tile
+      chess.getMovesForSquare(algebraic(tile)).length == 0 ? -1 : tile,
     );
   };
 
@@ -198,60 +198,62 @@ const Tile: React.FC<{
   blackPerspective,
   endGameIcon,
 }) => {
-    const color = squareColor(tileNumber);
+  const color = squareColor(tileNumber);
 
-    const { bg: bgColor, text: textColor } = TILE_COLORS[color];
-    const activeColor = TILE_COLORS[color].active;
+  const { bg: bgColor, text: textColor } = TILE_COLORS[color];
+  const activeColor = TILE_COLORS[color].active;
 
-    const tileFile = file(tileNumber);
-    const tileRank = rank(tileNumber);
-    const square = algebraic(tileNumber);
+  const tileFile = file(tileNumber);
+  const tileRank = rank(tileNumber);
+  const square = algebraic(tileNumber);
 
-    const isFirstColumn = tileFile == (blackPerspective ? FILE.H : FILE.A);
-    const isLastRow = tileRank == (blackPerspective ? RANK.EIGHTH : RANK.FIRST);
+  const isFirstColumn = tileFile == (blackPerspective ? FILE.H : FILE.A);
+  const isLastRow = tileRank == (blackPerspective ? RANK.EIGHTH : RANK.FIRST);
 
-    return (
-      <div
-        className={[
-          "relative aspect-square font-bold text-xl group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-2 sm:outline-4 -outline-offset-2 sm:-outline-offset-4",
-          isActive ? activeColor : bgColor,
-          piece ? "cursor-pointer" : "",
-        ].join(" ")}
-        data-tile={tileNumber}
-      >
-        {piece && (
-          <img
-            src={PIECES[piece.color][piece.type]}
-            className="max-w-full max-h-full aspect-square"
-          />
-        )}
-        <Show when={endGameIcon != undefined}>
-          <div className="absolute top-0 left-full -translate-x-1/2 -translate-y-1/2 bg-white z-10 rounded-full p-1 shadow-lg shadow-black aspect-square flex justify-center items-center">
-            {endGameIcon}
-          </div>
+  if (isFirstColumn || isLastRow) console.log(square);
+
+  return (
+    <div
+      className={[
+        "relative isolate aspect-square font-bold text-xl group [&>*]:pointer-events-none outline-blue-300 hover:outline outline-2 sm:outline-4 -outline-offset-2 sm:-outline-offset-4",
+        isActive ? activeColor : bgColor,
+        piece ? "cursor-pointer" : "",
+      ].join(" ")}
+      data-tile={tileNumber}
+    >
+      {piece && (
+        <img
+          src={PIECES[piece.color][piece.type]}
+          className="max-w-full max-h-full aspect-square"
+        />
+      )}
+      <Show when={endGameIcon != undefined}>
+        <div className="absolute top-0 left-full -translate-x-1/2 -translate-y-1/2 bg-white z-10 rounded-full p-1 shadow-lg shadow-black aspect-square flex justify-center items-center">
+          {endGameIcon}
+        </div>
+      </Show>
+      <Show when={isAttacked}>
+        <Show
+          when={piece == null}
+          fallback={
+            <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-full aspect-square border-8 border-gray-900/40 rounded-full"></div>
+          }
+        >
+          <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-[35%] aspect-square bg-gray-900/40 rounded-full group-hover:w-[45%]"></div>
         </Show>
-        <Show when={isAttacked}>
-          <Show
-            when={piece == null}
-            fallback={
-              <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-full aspect-square border-8 border-gray-900/40 rounded-full"></div>
-            }
-          >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-[35%] aspect-square bg-gray-900/40 rounded-full group-hover:w-[45%]"></div>
-          </Show>
-        </Show>
-        <Show when={isFirstColumn}>
-          <div className={`absolute top-1 left-1 -z-10 ${textColor}`}>
-            {square[1]}
-          </div>
-        </Show>
-        <Show when={isLastRow}>
-          <div className={`absolute bottom-1 right-1 -z-10 ${textColor}`}>
-            {square[0]}
-          </div>
-        </Show>
-      </div>
-    );
-  };
+      </Show>
+      <Show when={isFirstColumn}>
+        <div className={`absolute top-1 left-1 -z-10 ${textColor}`}>
+          {square[1]}
+        </div>
+      </Show>
+      <Show when={isLastRow}>
+        <div className={`absolute bottom-1 right-1 -z-10 ${textColor}`}>
+          {square[0]}
+        </div>
+      </Show>
+    </div>
+  );
+};
 
 export default ChessBoard;

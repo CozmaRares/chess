@@ -26,7 +26,7 @@ const io = new Server(
         origin: "http://localhost:3000",
       },
     }
-    : {}
+    : {},
 );
 
 type Room = {
@@ -105,7 +105,7 @@ if (process.env.NODE_ENV === "development")
         w: room.w,
         b: room.b,
         game: room.game.getFEN(),
-      })
+      }),
     );
     return res.json(Object.fromEntries(m));
   });
@@ -140,7 +140,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "client", "dist")));
 
   app.get("*", (_req, res) =>
-    res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"))
+    res.sendFile(path.resolve(__dirname, "client", "dist", "index.html")),
   );
 } else app.get("/", (_req, res) => res.send("Hello, world!"));
 
@@ -161,5 +161,5 @@ app.use((err: Error, _req: Request, res: Response) => {
 });
 
 server.listen(PORT, () =>
-  console.log("Server listening on http://localhost:" + PORT)
+  console.log("Server listening on http://localhost:" + PORT),
 );

@@ -16,7 +16,7 @@ const ErrorNorification: React.FC<{
       divRef.current.classList.add(
         "opacity-0",
         "transition-opacity",
-        "duration-300"
+        "duration-300",
       );
 
       setTimeout(() => {

@@ -4,14 +4,14 @@ type ArgumentTypes<F extends React.FC<any>> = F extends React.FC<infer TT>
 
 type Head<T extends Array<React.FC<any>>> = T extends [
   infer TT extends React.FC<any>,
-  ...any
+  ...any,
 ]
   ? TT
   : never;
 
 type Tail<T extends Array<React.FC<any>>> = T extends [
   any,
-  ...infer TT extends Array<React.FC<any>>
+  ...infer TT extends Array<React.FC<any>>,
 ]
   ? TT
   : never;

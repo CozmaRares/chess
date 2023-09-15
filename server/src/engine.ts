@@ -145,7 +145,7 @@ export function validateFEN(fen: string): void {
 
   if (fields.length != 6)
     throw new Error(
-      "Invalid FEN - string must contain 6 space delimited fields"
+      "Invalid FEN - string must contain 6 space delimited fields",
     );
 
   const validatePosition = (position: string) => {
@@ -153,7 +153,7 @@ export function validateFEN(fen: string): void {
 
     if (rows.length != 8)
       throw new Error(
-        "Invalid FEN - board position must contain 8 rows delimited by '/'"
+        "Invalid FEN - board position must contain 8 rows delimited by '/'",
       );
 
     const kings = [
@@ -166,12 +166,12 @@ export function validateFEN(fen: string): void {
 
       if (matches.length == 0)
         throw new Error(
-          `Invalid FEN - board position is missing ${king.color} king`
+          `Invalid FEN - board position is missing ${king.color} king`,
         );
 
       if (matches.length > 1)
         throw new Error(
-          `Invalid FEN - board position contains too many ${king.color} kings`
+          `Invalid FEN - board position contains too many ${king.color} kings`,
         );
     }
 
@@ -183,7 +183,7 @@ export function validateFEN(fen: string): void {
         if (isDigit(symbol)) {
           if (previousWasNumber)
             throw new Error(
-              "Invalid FEN - board position contains consecutive digits"
+              "Invalid FEN - board position contains consecutive digits",
             );
 
           numSquares += parseInt(symbol);
@@ -193,12 +193,12 @@ export function validateFEN(fen: string): void {
 
         if (
           !(Object.values(PIECE) as Array<string>).includes(
-            symbol.toLowerCase()
+            symbol.toLowerCase(),
           )
         )
           throw new Error(
             "Invalid FEN - board position contains an invalid piece symbol: " +
-            symbol
+            symbol,
           );
 
         numSquares++;
@@ -207,7 +207,7 @@ export function validateFEN(fen: string): void {
 
       if (numSquares != 8)
         throw new Error(
-          "Invalid FEN - board position contains a row that does not have 8 squares"
+          "Invalid FEN - board position contains a row that does not have 8 squares",
         );
     });
   };
@@ -233,14 +233,14 @@ export function validateFEN(fen: string): void {
   const validateHalfMoves = (halfMoves: string) => {
     if (/^\d+$/.test(halfMoves) == false)
       throw new Error(
-        "Invalid FEN - move number must be a non-negative integer"
+        "Invalid FEN - move number must be a non-negative integer",
       );
   };
 
   const validateFullMoves = (fullMoves: string) => {
     if (/^[1-9]\d*$/.test(fullMoves) == false)
       throw new Error(
-        "Invalid FEN - number of full moves must be a positive integer"
+        "Invalid FEN - number of full moves must be a positive integer",
       );
   };
 
@@ -326,7 +326,7 @@ function generatePawnMoves(
   position: number,
   color: Color,
   board: Readonly<Board>,
-  enPassantSquare: Square
+  enPassantSquare: Square,
 ): Array<InternalMove> {
   if (board[position] == null) return [];
 
@@ -343,7 +343,7 @@ function generatePawnMoves(
         to: toAlgebraic,
         promotion: piece,
         flags: MOVE_FLAGS.PROMOTION | (flag ?? 0),
-      })
+      }),
     );
   };
 
@@ -404,7 +404,7 @@ function generatePieceMoves(
   position: number,
   piece: Piece,
   board: Readonly<Board>,
-  enPassantSquare: Square
+  enPassantSquare: Square,
 ): Array<InternalMove> {
   if (piece.type == PIECE.PAWN)
     return generatePawnMoves(position, piece.color, board, enPassantSquare);
@@ -524,7 +524,7 @@ export default class Chess {
     fullMoves: number,
     kings: Record<Color, number>,
     enableProcessMoves: boolean,
-    enableHistory: boolean
+    enableHistory: boolean,
   ) {
     this._board = board;
     this._turn = turn;
@@ -549,7 +549,8 @@ export default class Chess {
       if (this._turn == piece.color) this._moves = this._moves.concat(moves);
 
       moves.forEach(
-        ({ to }) => (this._attacks[squareIndex(to)] |= COLOR_MASKS[piece.color])
+        ({ to }) =>
+          (this._attacks[squareIndex(to)] |= COLOR_MASKS[piece.color]),
       );
     }
 
@@ -629,7 +630,7 @@ export default class Chess {
     {
       enableProcessMoves,
       enableHistory,
-    }: { enableProcessMoves: boolean; enableHistory: boolean }
+    }: { enableProcessMoves: boolean; enableHistory: boolean },
   ) {
     validateFEN(fen);
 
@@ -777,7 +778,7 @@ export default class Chess {
     switch (move.flags) {
       case MOVE_FLAGS.PAWN_JUMP:
         this._enPassant = algebraic(
-          squareIndex(move.to) - PAWN_MOVE_INFO[myColor].offset
+          squareIndex(move.to) - PAWN_MOVE_INFO[myColor].offset,
         );
         keepEpSquare = true;
         break;
@@ -1054,7 +1055,7 @@ export default class Chess {
     chess._undoCount = 0;
     chess._history = this._history.slice(
       0,
-      this._history.length - this._undoCount
+      this._history.length - this._undoCount,
     );
 
     return chess;
@@ -1154,7 +1155,7 @@ export default class Chess {
         this._fullMoves,
         this._kings,
         this._enableProcessMoves,
-        this._enableHistory
+        this._enableHistory,
       );
     }
   };
