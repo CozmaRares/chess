@@ -92,21 +92,21 @@ The most challenging part was the design of the chess engine itself, mostly
 generating the moves and synchronizing the associated [FEN](https://www.chess.com/terms/fen-chess)
 string with the posision of the pieces on the board.
 
-During the project, I encountered unforeseen obstacles, including:
+During the project, I encountered some unforeseen obstacles, including:
 
 - CSS struggled to manage overflowing height of the gameplay history, and had to
   hack my way through with a little JavaScript.
-- Browsers need to connect securely to the game server. Initially, I assumed ACM
-  certificate generation and Route 53 configuration were sufficient. However, I
-  explored a more complex route involving a load balancer before ultimately relying
-  on nginx.
+- Browsers need to connect securely to the game server. Initially, I assumed `ACM`
+  certificate generation and `Route 53` configuration were sufficient. However, I
+  explored a more complex route involving a `load balancer` before ultimately relying
+  on `nginx`.
 
 The project's development relies on a range of technologies. `AWS` provides a
 dependable infrastructure. `TypeScript` ensures a more error-resistant
-development process. `ReactJS` facilitates the creation of dynamic user
+development process. `React` facilitates the creation of dynamic user
 interfaces, with `React Router` simplifying application routing, while
-`TailwindCSS` enables swift UI styling. `ViteJS` minimizes the initial frontend
-setup. On the backend, `ExpressJS` offers a robust HTTP framework, while
+`TailwindCSS` enables swift UI styling. `Vite` minimizes the initial frontend
+setup. On the backend, `Express` offers a robust HTTP framework, while
 `Socket.IO` manages web socket connections. Additionally, `Vitest` serves as a
 rapid testing tool that supports TypeScript out of the box.
 
