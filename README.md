@@ -1,7 +1,5 @@
 # Chess Game
 
-> [Working Demo](https://chess.raru.dev)
-
 ## Project Description
 
 A minimalistic server for a chess game accompanied by a corresponding website.
@@ -77,6 +75,8 @@ The application is hosted on AWS, with Route 53 directing traffic to an EC2
 instance. Within the EC2 instance, an nginx server is configured to route
 incoming HTTPS traffic from port 443 to the specific port where the application
 server is listening, ensuring secure communication.
+
+> NOTE: deployment is no longer available
 
 ## Reflection
 
